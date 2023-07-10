@@ -62,7 +62,7 @@ CIE_TEST_CASE( "Object", "[primitives]" )
     CIE_TEST_CHECK_NOTHROW( vectorObject.evaluate(doubleVector) );
     CIE_TEST_CHECK_NOTHROW( vectorObject.evaluate(doubleDeque) );
 
-    #ifdef CIE_ENABLE_OUT_OF_RANGE_TESTS
+    #ifdef CIE_ENABLE_OUT_OF_RANGE_CHECKS
     doubleVector.resize(dimension+1);
     doubleDeque.resize(dimension+1);
     CIE_TEST_CHECK_THROWS( boolObject.evaluate(doubleVector) );
@@ -88,7 +88,7 @@ CIE_TEST_CASE( "Object", "[primitives]" )
     CIE_TEST_CHECK_NOTHROW( intCoordinateBoolObject.evaluate(sizeVector) );
     CIE_TEST_CHECK_NOTHROW( intCoordinateBoolObject.evaluate(sizeDeque) );
 
-    #ifdef CIE_ENABLE_OUT_OF_RANGE_TESTS
+    #ifdef CIE_ENABLE_OUT_OF_RANGE_CHECKS
     sizeVector.resize(dimension+1);
     sizeDeque.resize(dimension+1);
     CIE_TEST_CHECK_THROWS( intCoordinateBoolObject.evaluate(sizeVector) );

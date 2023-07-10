@@ -110,7 +110,7 @@ StructuredMarchingPrimitives<TTarget,TPrimitive>::StructuredMarchingPrimitives(t
 
         this->_meshEdgeLengths[dim] = (r_domain[dim].second - r_domain[dim].first) / (r_numberOfPoints[dim] - 1);
 
-        CIE_RUNTIME_GEOMETRY_CHECK(
+        CIE_DEBUG_CHECK(
             this->_meshEdgeLengths[dim] > 0,
             "Invalid domain"
         )

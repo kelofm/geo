@@ -21,7 +21,7 @@ Cube<Dimension,CoordinateType>::Cube( const typename Cube<Dimension,CoordinateTy
     _base( r_base ),
     _length( length )
 {
-    CIE_RUNTIME_GEOMETRY_CHECK(
+    CIE_DEBUG_CHECK(
         length >= 0,
         "Edge length of a cube must be non-negative"
     )
@@ -38,7 +38,7 @@ Cube<Dimension,CoordinateType>::Cube( const ContainerType& r_base,
 {
     CIE_OUT_OF_RANGE_CHECK( r_base.size() == Dimension )
 
-    CIE_RUNTIME_GEOMETRY_CHECK(
+    CIE_DEBUG_CHECK(
         length >= 0,
         "Edge length of a cube must be non-negative"
     )

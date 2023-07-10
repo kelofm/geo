@@ -15,7 +15,7 @@ Ellipsoid<Dimension,CoordinateType>::Ellipsoid( const typename Ellipsoid<Dimensi
     _center( r_center ),
     _radii( r_radii )
 {
-    #ifdef CIE_ENABLE_RUNTIME_GEOMETRY_CHECKS
+    #ifndef NDEBUG
     bool positiveRadii = true;
     for ( const auto& radius : this->_radii )
         if ( radius < 0 )
@@ -23,8 +23,8 @@ Ellipsoid<Dimension,CoordinateType>::Ellipsoid( const typename Ellipsoid<Dimensi
             positiveRadii = false;
             break;
         }
-    
-    CIE_RUNTIME_GEOMETRY_CHECK(
+
+    CIE_DEBUG_CHECK(
         positiveRadii == true,
         "Ellipsoid radii must be non-negative"
     )

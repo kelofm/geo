@@ -22,7 +22,7 @@ Box<Dimension,CoordinateType>::Box(const Point& r_base, const Point& r_lengths)
 {
     #ifdef CIE_ENABLE_RUNTIME_GEOMETRY_CHECKS
     for (const auto& length : r_lengths)
-        CIE_RUNTIME_GEOMETRY_CHECK(0 <= length, "Edge lengths of a box must be non-negative (" << length << ")")
+        CIE_DEBUG_CHECK(0 <= length, "Edge lengths of a box must be non-negative (" << length << ")")
     #endif
 }
 
@@ -40,7 +40,7 @@ Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
 
     #ifdef CIE_ENABLE_RUNTIME_GEOMETRY_CHECKS
     for (const auto& length : r_lengths)
-        CIE_RUNTIME_GEOMETRY_CHECK(0 <= length, "Edge lengths of a box must be non-negative")
+        CIE_DEBUG_CHECK(0 <= length, "Edge lengths of a box must be non-negative")
     #endif
 
     std::copy(  r_base.begin(),

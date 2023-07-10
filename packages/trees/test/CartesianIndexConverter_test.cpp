@@ -79,7 +79,7 @@ CIE_TEST_CASE("CartesianIndexConverter", "[trees]")
     CIE_TEST_CHECK(test[0] == 2);
     CIE_TEST_CHECK(test[1] == 2);
 
-    #ifdef CIE_ENABLE_OUT_OF_RANGE_TESTS
+    #ifdef CIE_ENABLE_OUT_OF_RANGE_CHECKS
     // 9 - error
     CIE_TEST_CHECK_THROWS(test = converter.convert(counter++));
     #endif
@@ -114,7 +114,7 @@ CIE_TEST_CASE("CartesianIndexConverter", "[trees]")
     CIE_TEST_CHECK(test[0] == 1);
     CIE_TEST_CHECK(test[1] == 1);
 
-    #ifdef CIE_ENABLE_OUT_OF_RANGE_TESTS
+    #ifdef CIE_ENABLE_OUT_OF_RANGE_CHECKS
     // 4 - error
     CIE_TEST_CHECK_THROWS(test = converter.convert(counter++));
     #endif

@@ -19,7 +19,7 @@ Sphere<Dimension,CoordinateType>::Sphere( const typename Sphere<Dimension,Coordi
     _center( r_center ),
     _radius( radius )
 {
-    CIE_RUNTIME_GEOMETRY_CHECK(
+    CIE_DEBUG_CHECK(
         this->_radius >= 0.0,
         "Sphere radius must be non-negative"
     )
@@ -36,7 +36,7 @@ Sphere<Dimension,CoordinateType>::Sphere( const ContainerType& r_center,
         r_center.size() == Dimension
     )
 
-    CIE_RUNTIME_GEOMETRY_CHECK(
+    CIE_DEBUG_CHECK(
         radius >= 0.0,
         "Sphere radius must be non-negative"
     )
@@ -122,7 +122,7 @@ Sphere<Dimension,CoordinateType>::at( const typename Sphere<Dimension,Coordinate
 
     CoordinateType distance = 0;
     CoordinateType tmp = 0;
-    
+
     for ( Size dim=0; dim<Dimension; ++dim )
     {
         tmp = this->_center[dim] - r_point[dim];
