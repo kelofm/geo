@@ -2,6 +2,9 @@
 #include "packages/testing/inc/essentials.hpp"
 #include "packages/stl_extension/inc/StaticArray.hpp"
 
+// --- LinAlg Includes ---
+#include "packages/matrix/inc/DynamicEigenMatrix.hpp"
+
 // --- Internal Includes ---
 #include "packages/spline/inc/surface.hpp"
 
@@ -21,31 +24,24 @@ CIE_TEST_CASE( "Linear interpolation surface", "[surface]" )
 
     size_t numberOfSamplesR(11), numberOfSamplesS(9);
 
-    linalg::Matrix xGrid(
-        {
-            -1.0,	-1.0,	-1.0,
-            0.0,	0.0,	0.0,
-            1.0,	1.0,	1.0
-        },
-        3
-    );
-    linalg::Matrix yGrid(
-        {
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0
-        },
-        3
-    );
-    linalg::Matrix zGrid(
-        {
-            1.0,	1.0,	1.0,
-            1.0,	2.0,	1.0,
-            1.0,	1.0,	1.0,
-        },
-        3
-    );
-    VectorOfMatrices controlGrid{ xGrid, yGrid, zGrid };
+    VectorOfMatrices controlGrid;
+    {
+        linalg::DynamicEigenMatrix<double>::Wrapped xGrid(3, 3);
+        xGrid << -1.0, -1.0, -1.0,
+                  0.0,  0.0,  0.0,
+                  1.0,  1.0,  1.0;
+        linalg::DynamicEigenMatrix<double>::Wrapped yGrid(3, 3);
+        yGrid << -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0;
+        linalg::DynamicEigenMatrix<double>::Wrapped zGrid(3, 3);
+        zGrid <<  1.0,  1.0,  1.0,
+                  1.0,  2.0,  1.0,
+                  1.0,  1.0,  1.0;
+        controlGrid.push_back(std::move(xGrid));
+        controlGrid.push_back(std::move(yGrid));
+        controlGrid.push_back(std::move(zGrid));
+    }
 
     // Evaluate
     VectorOfMatrices C;
@@ -53,12 +49,12 @@ CIE_TEST_CASE( "Linear interpolation surface", "[surface]" )
 
     // Check sizes
     CIE_TEST_REQUIRE(C.size() == 3);
-    CIE_TEST_REQUIRE(C[0].size1() == numberOfSamplesR);
-    CIE_TEST_REQUIRE(C[1].size1() == numberOfSamplesR);
-    CIE_TEST_REQUIRE(C[2].size1() == numberOfSamplesR);
-    CIE_TEST_REQUIRE(C[0].size2() == numberOfSamplesS);
-    CIE_TEST_REQUIRE(C[1].size2() == numberOfSamplesS);
-    CIE_TEST_REQUIRE(C[2].size2() == numberOfSamplesS);
+    CIE_TEST_REQUIRE(C[0].rowSize() == numberOfSamplesR);
+    CIE_TEST_REQUIRE(C[1].rowSize() == numberOfSamplesR);
+    CIE_TEST_REQUIRE(C[2].rowSize() == numberOfSamplesR);
+    CIE_TEST_REQUIRE(C[0].columnSize() == numberOfSamplesS);
+    CIE_TEST_REQUIRE(C[1].columnSize() == numberOfSamplesS);
+    CIE_TEST_REQUIRE(C[2].columnSize() == numberOfSamplesS);
 
     // Check X-Y grid and surface values
     double X, Y, Z;
@@ -74,10 +70,10 @@ CIE_TEST_CASE( "Linear interpolation surface", "[surface]" )
             CIE_TEST_CHECK(C[1](r, s) == Approx(Y));
             CIE_TEST_CHECK(C[2](r, s) == Approx(Z));
 
-            //std::cout << Z << ",\t";		// Uncomment to print correct values
+            //std::cout << Z << ",\t";        // Uncomment to print correct values
 
         }
-        //std::cout << "\n";				// Uncomment to print correct values
+        //std::cout << "\n";                // Uncomment to print correct values
     }
 
 } // CIE_TEST_CASE("Linear interpolation surface")
@@ -100,34 +96,27 @@ CIE_TEST_CASE( "Cubic-linear interpolation surface", "[surface]" )
 
     size_t numberOfSamplesR(7), numberOfSamplesS(5);
 
-    linalg::Matrix xGrid(
-        {
-            -3.0,	-3.0,	-3.0,
-            -1.0,	-1.0,	-1.0,
-            1.0,	1.0,	1.0,
-            3.0,	3.0,	3.0
-        },
-        4
-    );
-    linalg::Matrix yGrid(
-        {
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0
-        },
-        4
-    );
-    linalg::Matrix zGrid(
-        {
-            1.0,	1.0,	1.0,
-            1.0,	49.0,	1.0,
-            1.0,	49.0,	1.0,
-            1.0,	1.0,	1.0,
-        },
-        4
-        );
-    VectorOfMatrices controlGrid{ xGrid, yGrid, zGrid };
+    VectorOfMatrices controlGrid;
+    {
+        linalg::DynamicEigenMatrix<double>::Wrapped xGrid(4, 3);
+        xGrid << -3.0, -3.0, -3.0,
+                 -1.0, -1.0, -1.0,
+                  1.0,  1.0,  1.0,
+                  3.0,  3.0,  3.0;
+        linalg::DynamicEigenMatrix<double>::Wrapped yGrid(4, 3);
+        yGrid << -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0;
+        linalg::DynamicEigenMatrix<double>::Wrapped zGrid(4, 3);
+        zGrid <<  1.0,  1.0,   1.0,
+                  1.0,  49.0,  1.0,
+                  1.0,  49.0,  1.0,
+                  1.0,  1.0,   1.0;
+        controlGrid.push_back(std::move(xGrid));
+        controlGrid.push_back(std::move(yGrid));
+        controlGrid.push_back(std::move(zGrid));
+    }
 
     // Evaluate
     VectorOfMatrices C;
@@ -135,12 +124,12 @@ CIE_TEST_CASE( "Cubic-linear interpolation surface", "[surface]" )
 
     // Check sizes
     CIE_TEST_REQUIRE(C.size() == 3);
-    CIE_TEST_REQUIRE(C[0].size1() == numberOfSamplesR);
-    CIE_TEST_REQUIRE(C[1].size1() == numberOfSamplesR);
-    CIE_TEST_REQUIRE(C[2].size1() == numberOfSamplesR);
-    CIE_TEST_REQUIRE(C[0].size2() == numberOfSamplesS);
-    CIE_TEST_REQUIRE(C[1].size2() == numberOfSamplesS);
-    CIE_TEST_REQUIRE(C[2].size2() == numberOfSamplesS);
+    CIE_TEST_REQUIRE(C[0].rowSize() == numberOfSamplesR);
+    CIE_TEST_REQUIRE(C[1].rowSize() == numberOfSamplesR);
+    CIE_TEST_REQUIRE(C[2].rowSize() == numberOfSamplesR);
+    CIE_TEST_REQUIRE(C[0].columnSize() == numberOfSamplesS);
+    CIE_TEST_REQUIRE(C[1].columnSize() == numberOfSamplesS);
+    CIE_TEST_REQUIRE(C[2].columnSize() == numberOfSamplesS);
 
     // Check X-Y grid and surface values
     double X, Y, Z, increment(0.0);
@@ -158,12 +147,12 @@ CIE_TEST_CASE( "Cubic-linear interpolation surface", "[surface]" )
             CIE_TEST_CHECK(C[1](r, s) == Approx(Y));
             CIE_TEST_CHECK(C[2](r, s) == Approx(Z));
 
-            //std::cout << Z << ",\t";				// Uncomment to print correct values
+            //std::cout << Z << ",\t";                // Uncomment to print correct values
 
         }
 
         increment += 10 - 4 * (double)r;
-        //std::cout << "\n";						// Uncomment to print correct values
+        //std::cout << "\n";                        // Uncomment to print correct values
     }
 
 

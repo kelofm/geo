@@ -7,8 +7,8 @@ class SplineVisual(scene.visuals.Line):
     def __init__(self, *args, **kwargs):
         scene.visuals.Line.__init__(self, *args, **kwargs)
         self.reset()
-        
-        
+
+
     def reset(self):
         self.unfreeze()
         self.splineKernel = SplineKernel()
@@ -33,10 +33,10 @@ class SplineVisual(scene.visuals.Line):
         state = self.splineKernel.pop()
         self.drawSpline()
         return state
-        
+
 
     def setPoint(self,point,index=-1):
-        if index < len(self.splineKernel.interpolationPoints[0]) and len(self.splineKernel.interpolationPoints[0]) is not 0:
+        if index < len(self.splineKernel.interpolationPoints[0]) and len(self.splineKernel.interpolationPoints[0]) != 0:
             self.splineKernel.interpolationPoints[0][index] = point[0]
             self.splineKernel.interpolationPoints[1][index] = point[1]
             self.drawSpline()

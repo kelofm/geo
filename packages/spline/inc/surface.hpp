@@ -2,7 +2,7 @@
 #define CIE_GEO_SPLINE_SURFACE_HPP
 
 // --- Linalg Includes ---
-#include "packages/types/inc/matrix.hpp"
+#include "packages/matrix/inc/DynamicEigenMatrix.hpp"
 
 // --- Utility Includes ---
 #include "packages/types/inc/types.hpp"
@@ -16,7 +16,7 @@
 
 namespace cie::geo {
 
-using VectorOfMatrices = std::vector<linalg::Matrix<Double>>;
+using VectorOfMatrices = std::vector<linalg::DynamicEigenMatrix<Double>>;
 
 /* Evaluates a 2D B-Spline patch.
  * @param knotVectors Two knot vectors in r and s directions
@@ -32,9 +32,9 @@ using VectorOfMatrices = std::vector<linalg::Matrix<Double>>;
  *         by numberOfSamples. In the above example we would return a 50 x 50 matrix of x-values,
  *         a 50 x 50 matrix of y-values, etc.
  */
-VectorOfMatrices evaluateSurface( const StaticArray<std::vector<double>, 2>& knotVectors,
-                                  const VectorOfMatrices& controlPoints,
-                                  StaticArray<size_t, 2> numberOfSamplePoints );
+VectorOfMatrices evaluateSurface(const StaticArray<std::vector<double>, 2>& knotVectors,
+                                 const VectorOfMatrices& controlPoints,
+                                 StaticArray<size_t, 2> numberOfSamplePoints);
 
 } // cie::geo
 

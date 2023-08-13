@@ -2,7 +2,7 @@
 #define CIE_GEO_SPLINE_INTERPOLATION_HPP
 
 // --- Linalg Includes ---
-#include "packages/types/inc/matrix.hpp"
+#include "packages/matrix/inc/DynamicEigenMatrix.hpp"
 
 // --- Utility Includes ---
 #include "packages/stl_extension/inc/StaticArray.hpp"
@@ -16,7 +16,7 @@ namespace cie::geo {
 using ControlPoints2D = StaticArray<std::vector<double>, 2>;
 using ControlPointsAndKnotVector = std::pair<ControlPoints2D, std::vector<double>>;
 
-using VectorOfMatrices = std::vector<linalg::Matrix<Double>>;
+using VectorOfMatrices = std::vector<linalg::DynamicEigenMatrix<Double>>;
 using VectorPair = StaticArray<std::vector<double>, 2>;
 using ControlPointsAndKnotVector3D = std::pair<VectorOfMatrices, VectorPair>;
 

@@ -212,7 +212,7 @@ LinearSystem BSplineFiniteElementMesh::assembleLinearSystem( const SpatialFuncti
     {
         for( size_t jElement = 0; jElement < numberOfElements_[1]; ++jElement )
         {
-            linalg::Matrix elementMatrix( numberOfElementDofs, numberOfElementDofs );
+            linalg::DynamicEigenMatrix<double> elementMatrix(numberOfElementDofs, numberOfElementDofs);
 
             // Location maps are stored as vector, so we have to find the correct index
             auto locationMap = locationMaps_[iElement * numberOfElements_[1] + jElement];

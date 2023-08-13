@@ -1,5 +1,5 @@
 // --- Linalg Includes ---
-#include "packages/types/inc/matrix.hpp"
+#include "packages/matrix/inc/DynamicEigenMatrix.hpp"
 #include "packages/utilities/inc/linalghelper.hpp"
 
 // --- Utility Includes ---
@@ -248,37 +248,30 @@ CIE_TEST_CASE( "interpolate with BSpline surface", "[splinekernel]" )
     CIE_TEST_CASE_INIT( "interpolate with BSpline surface" )
 
     // Interpolation points
-    linalg::Matrix xGrid(
-        {
-            -3.0,	-3.0,	-3.0,
-            -1.0,	-1.0,	-1.0,
-            1.0,	1.0,	1.0,
-            3.0,	3.0,	3.0
-        },
-        4
-    );
-    linalg::Matrix yGrid(
-        {
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0,
-            -1.0,	0.0,	1.0
-        },
-        4
-    );
-    linalg::Matrix zGrid(
-        {
-            1.0,	1.0,	1.0,
-            1.0,	49.0,	1.0,
-            1.0,	49.0,	1.0,
-            1.0,	1.0,	1.0,
-        },
-        4
-        );
-    VectorOfMatrices grid({ xGrid,yGrid,zGrid });
+    VectorOfMatrices grid;
+    {
+        linalg::DynamicEigenMatrix<double>::Wrapped xGrid(4, 3);
+        xGrid << -3.0, -3.0, -3.0,
+                 -1.0, -1.0, -1.0,
+                  1.0,  1.0,  1.0,
+                  3.0,  3.0,  3.0;
+        linalg::DynamicEigenMatrix<double>::Wrapped yGrid(4, 3);
+        yGrid << -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0,
+                 -1.0,  0.0,  1.0;
+        linalg::DynamicEigenMatrix<double>::Wrapped zGrid(4, 3);
+        zGrid << 1.0,  1.0,   1.0,
+                 1.0,  49.0,  1.0,
+                 1.0,  49.0,  1.0,
+                 1.0,  1.0,   1.0;
+        grid.push_back(std::move(xGrid));
+        grid.push_back(std::move(yGrid));
+        grid.push_back(std::move(zGrid));
+    }
 
     CIE_TEST_FILE_OUTPUT( "interpolateWithBSplineSurface.grid_in.csv",
-        linalg::linalghelper::write( grid[0], TEST_FILE );
+        linalg::linalghelper::write(grid[0], TEST_FILE);
     )
 
     //std::cout << "\n";

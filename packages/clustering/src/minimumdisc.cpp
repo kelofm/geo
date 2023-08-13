@@ -1,6 +1,7 @@
 // --- Linalg Includes ---
-#include "packages/types/inc/matrix.hpp"
-#include "packages/overloads/inc/matrixoperators.hpp"
+#include "packages/matrix/inc/StaticEigenMatrix.hpp"
+#include "packages/overloads/inc/matrix_operators.hpp"
+#include "packages/overloads/inc/vector_operators.hpp"
 #include "packages/overloads/inc/vectoroperators.hpp"
 
 // --- Utility Includes ---
@@ -25,22 +26,22 @@ namespace cie::geo {
 
 
 // Define the necessary permutations to check, possible scenarios (neglecting 0 radius discs):
-//	-	all possible discs defined by a set of 2 points:	1 possibility
-//	-	all possible discs defined by a set of 3 points:	3 possibilities
-//	-	all possible discs defined by a set of 4 points:	6 possibilities
+// - all possible discs defined by a set of 2 points:    1 possibility
+// - all possible discs defined by a set of 3 points:    3 possibilities
+// - all possible discs defined by a set of 4 points:    6 possibilities
 std::vector<std::vector<IntVector>> permutationSets =
 {
-	{
-		{0,1}
-	},
-	{
-		{0,2},{1,2},
-		{0,1,2}
-	},
-	{
-		{0,3},{1,3},{2,3},
-		{0,1,3},{0,2,3},{1,2,3}
-	}
+    {
+        {0,1}
+    },
+    {
+        {0,2},{1,2},
+        {0,1,2}
+    },
+    {
+        {0,3},{1,3},{2,3},
+        {0,1,3},{0,2,3},{1,2,3}
+    }
 };
 
 
@@ -66,7 +67,7 @@ Disc::Disc(const DoubleArray<2>& center, double radius) :
 }
 
 
-Disc::Disc( const DoubleArray<2>& point1, 
+Disc::Disc( const DoubleArray<2>& point1,
             const DoubleArray<2>& point2) :
     _radius2(distance(point1, point2) / 4.0),
     _center((point1 + point2) / 2.0)
@@ -74,13 +75,13 @@ Disc::Disc( const DoubleArray<2>& point1,
 }
 
 
-Disc::Disc( const DoubleArray<2>& point1, 
-            const DoubleArray<2>& point2, 
+Disc::Disc( const DoubleArray<2>& point1,
+            const DoubleArray<2>& point2,
             const DoubleArray<2>& point3 )
 {
     // Check whether the definition is unique
     double tolerance    = 1e-15;
-    double determinant  =   (point1[0]-point2[0])*(point1[1]-point3[1]) 
+    double determinant  =   (point1[0]-point2[0])*(point1[1]-point3[1])
                             - (point1[0]-point3[0])*(point1[1]-point2[1]);
 
     if (std::abs(determinant)<tolerance)
@@ -127,7 +128,7 @@ Disc::Disc( const DoubleArray<2>& point1,
                 // Nope, it was point2 and point3
                 solution = Disc(point2,point3);
             }
-            
+
         }
 
         _center     = solution._center;
@@ -144,17 +145,21 @@ Disc::Disc( const DoubleArray<2>& point1,
     //      --            --          --                         --
 
     // Calculate center
-    _center = 
-        linalg::Matrix<Double>({    point1[1]-point3[1], point2[1]-point1[1],
-                                    point3[0]-point1[0], point1[0]-point2[0]},
-                                2 )
-        *
-        DoubleArray<2>( {   squareNorm(point1) - squareNorm(point2),
-                            squareNorm(point1) - squareNorm(point3) })
-        /
-        determinant
-        /
-        2.0;
+    {
+        linalg::StaticEigenMatrix<double,2,2> lhs;
+        lhs(0, 0) = point1[1]-point3[1];
+        lhs(0, 1) = point2[1]-point1[1];
+        lhs(1, 0) = point3[0]-point1[0];
+        lhs(1, 1) = point1[0]-point2[0];
+
+        linalg::StaticEigenMatrix<double,2,1> rhs;
+        rhs(0, 0) = squareNorm(point1) - squareNorm(point2);
+        rhs(1, 0) = squareNorm(point1) - squareNorm(point3);
+
+        Eigen::Map<Eigen::Matrix<double,2,1>> center(_center.data());
+        center = lhs.wrapped() * rhs.wrapped();
+        _center /= determinant * 2.0;
+    }
 
     // Calculate radius based on the center
     _radius2 = distance(_center, point1);
@@ -191,119 +196,119 @@ MinimumEnclosingDisc::MinimumEnclosingDisc( const PointSet2D& pointSet) :
 
     // Fill the active set with the first point
     _activeIndices[0]   = 0;
-	_disc._center		= getPoint(0);
-	_disc._radius2		= 0.0;
+    _disc._center        = getPoint(0);
+    _disc._radius2        = 0.0;
 }
 
 
 int MinimumEnclosingDisc::build(double tolerance)
 {
-	int outlierIndex;
-	int activeSize;
-	int restartCount = 0;
+    int outlierIndex;
+    int activeSize;
+    int restartCount = 0;
 
     for (restartCount=0;restartCount<(int)_pointSetPtr->size();++restartCount)
     {
         // Check whether all points are inside the current disc
-		outlierIndex = checkEnclosure(tolerance);
-        if (outlierIndex==-1) 
+        outlierIndex = checkEnclosure(tolerance);
+        if (outlierIndex==-1)
             // Check succeeded, end the loop
             break;
 
         // Check failed, outlier identified
-		// Add outlier ti the list of active indices
-		activeSize = addActiveIndex(outlierIndex);
+        // Add outlier ti the list of active indices
+        activeSize = addActiveIndex(outlierIndex);
 
-		// Find the points which defines a circle that encloses all other points
-		// and pick the one with the least radius
-		// 1) Define containers
-		Disc trialDisc({0.0,0.0},0.0);
-		IntArray<4> activeIndices;
-		bool enclosed = true;
-		std::pair<std::vector<Disc>,std::vector<IntVector>> candidates;
+        // Find the points which defines a circle that encloses all other points
+        // and pick the one with the least radius
+        // 1) Define containers
+        Disc trialDisc({0.0,0.0},0.0);
+        IntArray<4> activeIndices;
+        bool enclosed = true;
+        std::pair<std::vector<Disc>,std::vector<IntVector>> candidates;
 
-		// 2) Loop through possible permutations of the points
-		//		(see the definition of permutationSets - the new point must be on the new circle)
-		for (uint8_t permutation = 0; permutation < permutationSets[activeSize-2].size(); ++permutation)
-			{
-				auto indices = permutationSets[activeSize-2][permutation];
+        // 2) Loop through possible permutations of the points
+        //        (see the definition of permutationSets - the new point must be on the new circle)
+        for (uint8_t permutation = 0; permutation < permutationSets[activeSize-2].size(); ++permutation)
+            {
+                auto indices = permutationSets[activeSize-2][permutation];
 
-				// Define disc
-				if (indices.size() == 2)
-				{
-					trialDisc = Disc(	getPoint(_activeIndices[indices[0]]),
-										getPoint(_activeIndices[indices[1]])	);
-				}
-				else if (indices.size() == 3)
-				{
-					trialDisc = Disc(	getPoint(_activeIndices[indices[0]]),
-										getPoint(_activeIndices[indices[1]]),
-										getPoint(_activeIndices[indices[2]])	);
-				}
-				else
+                // Define disc
+                if (indices.size() == 2)
+                {
+                    trialDisc = Disc(    getPoint(_activeIndices[indices[0]]),
+                                        getPoint(_activeIndices[indices[1]])    );
+                }
+                else if (indices.size() == 3)
+                {
+                    trialDisc = Disc(    getPoint(_activeIndices[indices[0]]),
+                                        getPoint(_activeIndices[indices[1]]),
+                                        getPoint(_activeIndices[indices[2]])    );
+                }
+                else
                     CIE_THROW( std::runtime_error, "Invalid number of disc points!" )
 
-				// Check disc
-				enclosed = true;
-				for (uint8_t pIndex = 0; pIndex < activeSize; ++pIndex)
-				{
-					if (	distance(trialDisc._center, getPoint(_activeIndices[pIndex])) > trialDisc._radius2+tolerance	)
-					{
-						enclosed = false;
-						break;
-					}
-				}
+                // Check disc
+                enclosed = true;
+                for (uint8_t pIndex = 0; pIndex < activeSize; ++pIndex)
+                {
+                    if (    distance(trialDisc._center, getPoint(_activeIndices[pIndex])) > trialDisc._radius2+tolerance    )
+                    {
+                        enclosed = false;
+                        break;
+                    }
+                }
 
-				// If the current trialDisc encloses all other points from the active set,
-				// store its data and the indices of the points in _activeIndices (yes, that's double index referencing)
-				if (enclosed)
-				{
-					candidates.first.push_back(trialDisc);
-					candidates.second.push_back(indices);
-				}
+                // If the current trialDisc encloses all other points from the active set,
+                // store its data and the indices of the points in _activeIndices (yes, that's double index referencing)
+                if (enclosed)
+                {
+                    candidates.first.push_back(trialDisc);
+                    candidates.second.push_back(indices);
+                }
 
-		} // for permutation
+        } // for permutation
 
-		// Dump current state and throw error if no enclosing disc was found
-		if (candidates.first.empty())
-		{
-			std::cout << "Dumping MinimumEnclosingDisc data:\n";
-			std::cout << "\tActive set (" << activeSize << "):\n";
-			for (uint8_t k = 0; k < _activeIndices.size(); ++k)
-			{
-				if (_activeIndices[k] == -1)
-					std::cout << "\t\tempty\n";
-				else
-					std::cout << "\t\t" << getPoint(_activeIndices[k])[0] << ", " << getPoint(_activeIndices[k])[1] << "\n";
-			}
+        // Dump current state and throw error if no enclosing disc was found
+        if (candidates.first.empty())
+        {
+            std::cout << "Dumping MinimumEnclosingDisc data:\n";
+            std::cout << "\tActive set (" << activeSize << "):\n";
+            for (uint8_t k = 0; k < _activeIndices.size(); ++k)
+            {
+                if (_activeIndices[k] == -1)
+                    std::cout << "\t\tempty\n";
+                else
+                    std::cout << "\t\t" << getPoint(_activeIndices[k])[0] << ", " << getPoint(_activeIndices[k])[1] << "\n";
+            }
             CIE_THROW( std::runtime_error, "Failed to find a new disc!" )
-		}
+        }
 
-		// Find best disc if there are candidates
-		auto minDisc = std::min_element(	candidates.first.begin(),
-											candidates.first.end(),
-											[this](const Disc& lhs, const Disc& rhs) ->bool
-												{return (lhs._radius2 < rhs._radius2 && lhs._radius2 >= this->_disc._radius2) ? true : false; });
-		_disc = *minDisc;
+        // Find best disc if there are candidates
+        auto minDisc = std::min_element(    candidates.first.begin(),
+                                            candidates.first.end(),
+                                            [this](const Disc& lhs, const Disc& rhs) ->bool
+                                                {return (lhs._radius2 < rhs._radius2 && lhs._radius2 >= this->_disc._radius2) ? true : false; });
+        _disc = *minDisc;
 
-		// Remove points from the active set that are enclosed (no longer active)
-		activeIndices = _activeIndices;
-		int discIndex = std::distance(candidates.first.begin(), minDisc);
-		for (uint8_t k = 0; k < activeSize; ++k)
-		{
-			if (std::find(candidates.second[discIndex].begin(), candidates.second[discIndex].end(), k) == candidates.second[discIndex].end())
-			{
-				removeActiveIndex(activeIndices[k]);
-			}
-		}
+        // Remove points from the active set that are enclosed (no longer active)
+        activeIndices = _activeIndices;
+        int discIndex = std::distance(candidates.first.begin(), minDisc);
+        for (uint8_t k = 0; k < activeSize; ++k)
+        {
+            if (std::find(candidates.second[discIndex].begin(), candidates.second[discIndex].end(), k) == candidates.second[discIndex].end())
+            {
+                removeActiveIndex(activeIndices[k]);
+            }
+        }
 
     } // while
 
-	return restartCount;
+    return restartCount;
 }
 
 
-double MinimumEnclosingDisc::getRadius() const 
+double MinimumEnclosingDisc::getRadius() const
 {
     return std::sqrt(_disc._radius2);
 }
@@ -317,22 +322,22 @@ DoubleArray<2> MinimumEnclosingDisc::getCenter() const
 
 IntVector MinimumEnclosingDisc::getActiveIndices() const
 {
-	// Returns the unshuffled indices of the active set
-	IntVector indices(_activeIndices.size());
-	uint8_t count = 0;
-	for (uint8_t i = 0; i < _activeIndices.size(); ++i)
-	{
-		if (_activeIndices[i] != -1)
-		{
-			indices[count++] = (int)_map[_activeIndices[i]];
-		}
-	}
-	indices.resize(count);
-	return indices;
+    // Returns the unshuffled indices of the active set
+    IntVector indices(_activeIndices.size());
+    uint8_t count = 0;
+    for (uint8_t i = 0; i < _activeIndices.size(); ++i)
+    {
+        if (_activeIndices[i] != -1)
+        {
+            indices[count++] = (int)_map[_activeIndices[i]];
+        }
+    }
+    indices.resize(count);
+    return indices;
 }
 
 
-const DoubleArray<2>& MinimumEnclosingDisc::getPoint(size_t index) const 
+const DoubleArray<2>& MinimumEnclosingDisc::getPoint(size_t index) const
 {
     // Reroute container indexing through the member variable: _map
     return (*_pointSetPtr)[_map[index]];
@@ -341,89 +346,89 @@ const DoubleArray<2>& MinimumEnclosingDisc::getPoint(size_t index) const
 
 int MinimumEnclosingDisc::checkEnclosure(double tolerance) const
 {
-	int outlierIndex = -1;
-	for (size_t i=0; i<_pointSetPtr->size();++i)
-	{
-		if (distance(_disc._center, getPoint(i)) > _disc._radius2+tolerance)
-		{
-			outlierIndex = (int)i;
-			break;
-		}
-	}
-	return outlierIndex;
+    int outlierIndex = -1;
+    for (size_t i=0; i<_pointSetPtr->size();++i)
+    {
+        if (distance(_disc._center, getPoint(i)) > _disc._radius2+tolerance)
+        {
+            outlierIndex = (int)i;
+            break;
+        }
+    }
+    return outlierIndex;
 }
 
 
 int MinimumEnclosingDisc::addActiveIndex(int index)
 {
-	// Copy index to an empty position in _activeIndices, return the 
-	// number of non-empty active indices
-	// (empty entries have a value of -1)
-	size_t i = 0;
-	for (i = 0; i < _activeIndices.size(); ++i)
-	{
-		if (_activeIndices[i] < 0)
-		{
-			_activeIndices[i] = index;
-			break;
-		}
-		else if (i == _activeIndices.size() - 1)
-		{
-			std::cout << "Dumping MinimumEnclosingDisc data:\n"
-				<< "Active indices: "
-				<< _activeIndices[0] << ", "
-				<< _activeIndices[1] << ", "
-				<< _activeIndices[2] << ", "
-				<< _activeIndices[3] << "\n";
-			std::cout << "Current disc:\n"
-				<< "\tcenter: " << _disc._center[0] << ", " << _disc._center[1] << "\n"
-				<< "\tradius: " << std::sqrt(_disc._radius2) << "\n";
+    // Copy index to an empty position in _activeIndices, return the
+    // number of non-empty active indices
+    // (empty entries have a value of -1)
+    size_t i = 0;
+    for (i = 0; i < _activeIndices.size(); ++i)
+    {
+        if (_activeIndices[i] < 0)
+        {
+            _activeIndices[i] = index;
+            break;
+        }
+        else if (i == _activeIndices.size() - 1)
+        {
+            std::cout << "Dumping MinimumEnclosingDisc data:\n"
+                << "Active indices: "
+                << _activeIndices[0] << ", "
+                << _activeIndices[1] << ", "
+                << _activeIndices[2] << ", "
+                << _activeIndices[3] << "\n";
+            std::cout << "Current disc:\n"
+                << "\tcenter: " << _disc._center[0] << ", " << _disc._center[1] << "\n"
+                << "\tradius: " << std::sqrt(_disc._radius2) << "\n";
             CIE_THROW( std::runtime_error, "Failed to add index " + std::to_string(index) + " to the active set!" )
-		}
-	}
+        }
+    }
 
-	return (int)++i;
+    return (int)++i;
 }
 
 
 void MinimumEnclosingDisc::removeActiveIndex(int index)
 {
-	// Set the entry of _activeIndices containing index to -1,
-	// then compress
-	bool swap = false;
-	int temp;
-	for (size_t i = 0; i < _activeIndices.size(); ++i)
-	{
-		if (!swap && _activeIndices[i] == index)
-			swap = true;
-		else if (!swap && i == _activeIndices.size() - 1)
-		{
-			std::cout << "Dumping MinimumEnclosingDisc data:\n"
-				<< "Active indices: "
-				<< _activeIndices[0] << ", "
-				<< _activeIndices[1] << ", "
-				<< _activeIndices[2] << ", "
-				<< _activeIndices[3] << "\n";
-			std::cout << "Current disc:\n"
-				<< "\tcenter: " << _disc._center[0] << ", " << _disc._center[1] << "\n"
-				<< "\tradius: " << std::sqrt(_disc._radius2) << "\n";
+    // Set the entry of _activeIndices containing index to -1,
+    // then compress
+    bool swap = false;
+    int temp;
+    for (size_t i = 0; i < _activeIndices.size(); ++i)
+    {
+        if (!swap && _activeIndices[i] == index)
+            swap = true;
+        else if (!swap && i == _activeIndices.size() - 1)
+        {
+            std::cout << "Dumping MinimumEnclosingDisc data:\n"
+                << "Active indices: "
+                << _activeIndices[0] << ", "
+                << _activeIndices[1] << ", "
+                << _activeIndices[2] << ", "
+                << _activeIndices[3] << "\n";
+            std::cout << "Current disc:\n"
+                << "\tcenter: " << _disc._center[0] << ", " << _disc._center[1] << "\n"
+                << "\tradius: " << std::sqrt(_disc._radius2) << "\n";
             CIE_THROW( std::runtime_error, "Failed to remove index " + std::to_string(index) + " from the active set!" )
-		}
+        }
 
-		if (swap)
-		{
-			if (i < _activeIndices.size() - 1)
-			{
-				temp					= _activeIndices[i];
-				_activeIndices[i]		= _activeIndices[i + 1];
-				_activeIndices[i + 1]	= temp;
-			}
-			else
-			{
-				_activeIndices[i] = -1;
-			}
-		}
-	}
+        if (swap)
+        {
+            if (i < _activeIndices.size() - 1)
+            {
+                temp                    = _activeIndices[i];
+                _activeIndices[i]        = _activeIndices[i + 1];
+                _activeIndices[i + 1]    = temp;
+            }
+            else
+            {
+                _activeIndices[i] = -1;
+            }
+        }
+    }
 }
 
 

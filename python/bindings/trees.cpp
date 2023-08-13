@@ -1,6 +1,7 @@
 // --- External Includes ---
 #include "pybind11/attr.h"
 #include "pybind11/functional.h"
+#include "pybind11/numpy.h"
 
 // --- GEO Includes ---
 #include "python/bindings/trees.hpp"
@@ -48,15 +49,12 @@ public:
         }
 
         constexpr unsigned numberOfVertices = intPow(2u, TTree::Dimension);
-        constexpr unsigned flatSize = numberOfVertices * TTree::Dimension;
         constexpr std::array<Size,2> shape {numberOfVertices, TTree::Dimension};
         auto output = makeNumpyArray<typename TTree::Coordinate,2>(shape.data());
 
-        constexpr unsigned end = 1 << TTree::Dimension;
-        //unsigned i_out = 0;
-        for (unsigned i_vertexBegin=0; i_vertexBegin<flatSize; i_vertexBegin+=TTree::Dimension) {
+        for (unsigned i_vertex=0; i_vertex<numberOfVertices; ++i_vertex) {
             for (unsigned i_dim=0; i_dim<TTree::Dimension; ++i_dim) {
-                output.mutable_at(i_vertexBegin + i_dim) = base[i_dim] + bool(i_vertexBegin & (1<<i_dim)) * edges[i_dim];
+                output.mutable_at(i_vertex, i_dim) = base[i_dim] + bool(i_vertex & (1<<i_dim)) * edges[i_dim];
             }
         }
         return output;
@@ -91,17 +89,16 @@ void makeContiguousSpaceTreeBindings(Ref<pybind11::module_> r_module,
     using Pair = DummyPair<TTree,std::optional<View>>;
 
     auto nodeBindings = pybind11::class_<NodeWrapper<TTree>, std::shared_ptr<NodeWrapper<TTree>>>(
-        r_module,
-        (r_name + "Node").c_str()
-    )   .def(pybind11::init<const NodeWrapper<TTree>&>())
+            r_module,
+            (r_name + "Node").c_str())
+        .def(pybind11::init<Ref<const NodeWrapper<TTree>>>())
         .def("getVertices", &NodeWrapper<TTree>::getVertices)
         .def("isLeaf", &NodeWrapper<TTree>::isLeaf)
         ;
 
     auto treeBindings = pybind11::class_<Pair, std::shared_ptr<Pair>>(r_module, r_name.c_str())
         .def(pybind11::init([] (Ref<const StaticArray<double,2>> r_base, double edge) -> Pair {
-                return Pair {TTree(r_base, edge), std::optional<View>()
-            };
+                return Pair {TTree(r_base, edge), std::optional<View>()};
         }))
         .def("scan", [] (Ref<Pair> r_pair,
                          std::function<bool(Ref<const NodeWrapper<TTree>>)> predicate,

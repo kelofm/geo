@@ -1,14 +1,14 @@
+// --- External Includes ---
+#include "Eigen/Dense"
+
 // --- Linalg Includes ---
-#include "packages/types/inc/matrix.hpp"
-#include "packages/solvers/inc/gaussiansolver.hpp"
+#include "packages/matrix/inc/DynamicEigenMatrix.hpp"
+#include "packages/spline/inc/interpolation.hpp"
+#include "packages/spline/inc/basisfunctions.hpp"
 
 // --- Utility Includes ---
 #include "packages/macros/inc/exceptions.hpp"
 #include "packages/stl_extension/inc/StaticArray.hpp"
-
-// --- Internal Includes ---
-#include "packages/spline/inc/interpolation.hpp"
-#include "packages/spline/inc/basisfunctions.hpp"
 #include "cmake_variables.hpp"
 
 // --- STL Includes ---
@@ -26,18 +26,27 @@ ControlPointsAndKnotVector3D interpolateWithBSplineSurface(const VectorOfMatrice
                                                            size_t polynomialDegreeR,
                                                            size_t polynomialDegreeS) {
     // Get sizes
-    size_t sizeR(interpolationPoints[0].size1());
-    size_t sizeS(interpolationPoints[0].size2());
-    size_t numberOfPoints(sizeR*sizeS);
+    CIE_CHECK(!interpolationPoints.empty(), "")
+    size_t sizeR(interpolationPoints[0].rowSize());
+    size_t sizeS(interpolationPoints[0].columnSize());
+    size_t numberOfPoints = sizeR * sizeS;
+
+    for (const auto& r_matrix : interpolationPoints) {
+        CIE_OUT_OF_RANGE_CHECK(r_matrix.rowSize() == sizeR, "")
+        CIE_OUT_OF_RANGE_CHECK(r_matrix.columnSize() == sizeS, "")
+    }
+
     // Get parameter positions at interpolation points
     StaticArray<std::vector<double>,2> parameterPositionsRS = centripetalParameterPositions(interpolationPoints);
+
     // Get knot vectors
     std::vector<double> knotVectorR(knotVectorUsingAveraging(parameterPositionsRS[0], polynomialDegreeR));
     std::vector<double> knotVectorS(knotVectorUsingAveraging(parameterPositionsRS[1], polynomialDegreeS));
+
     // Assemble matrix
     double temp;
     size_t column, pR, pS;
-    linalg::Matrix shapeFunctionMatrix(numberOfPoints, numberOfPoints);
+    linalg::DynamicEigenMatrix<double> shapeFunctionMatrix(numberOfPoints, numberOfPoints);
     shapeFunctionMatrix(0, 0) = 1.0;
     for (size_t row = 1; row < numberOfPoints-1; ++row) {
         pR = row % sizeR;
@@ -45,10 +54,8 @@ ControlPointsAndKnotVector3D interpolateWithBSplineSurface(const VectorOfMatrice
         for (size_t s = 0; s < sizeS; ++s) {
             temp = evaluateBSplineBasis(parameterPositionsRS[1][pS], s, polynomialDegreeS, knotVectorS);
             for (size_t r = 0; r < sizeR; ++r) {
-
                 column = s * sizeR + r;
                 shapeFunctionMatrix(row, column) = evaluateBSplineBasis(parameterPositionsRS[0][pR], r, polynomialDegreeR, knotVectorR) * temp;
-
             }
         }
     }
@@ -56,59 +63,65 @@ ControlPointsAndKnotVector3D interpolateWithBSplineSurface(const VectorOfMatrice
 
     // Solve for components
     VectorOfMatrices controlPoints(3);
-    controlPoints[0] = linalg::Matrix(
-        linalg::solve(shapeFunctionMatrix, interpolationPoints[0].data()),
-        sizeR
-    );
-    controlPoints[1] = linalg::Matrix(
-        linalg::solve(shapeFunctionMatrix, interpolationPoints[1].data()),
-        sizeR
-    );
-    controlPoints[2] = linalg::Matrix(
-        linalg::solve(shapeFunctionMatrix, interpolationPoints[2].data()),
-        sizeR
-    );
+    const auto factorized = shapeFunctionMatrix.wrapped().partialPivLu();
+    for (unsigned i=0; i<3; ++i) {
+        const Eigen::Map<const Eigen::Matrix<double,Eigen::Dynamic,1>> flattened(
+            interpolationPoints[i].wrapped().data(),
+            numberOfPoints);
+        controlPoints[i] = factorized.solve(flattened);
+    }
+
     //
-    VectorPair knotVectors({ knotVectorR,knotVectorS });
-    return std::make_pair(controlPoints,knotVectors);
+    VectorPair knotVectors({
+        std::move(knotVectorR),
+        std::move(knotVectorS)
+    });
+    return std::make_pair(
+        std::move(controlPoints),
+        std::move(knotVectors)
+    );
 }
 
 
 
-ControlPointsAndKnotVector interpolateWithBSplineCurve( const ControlPoints2D& interpolationPoints,
-                                                    size_t polynomialDegree )
+ControlPointsAndKnotVector interpolateWithBSplineCurve(const ControlPoints2D& interpolationPoints,
+                                                       size_t polynomialDegree)
 {
     size_t numberOfPoints = interpolationPoints[0].size( );
 
-    if( interpolationPoints[1].size( ) != numberOfPoints )
-        CIE_THROW( OutOfRangeException, "Inconsistent sizes in interpolate Curve" )
+    CIE_CHECK(interpolationPoints[1].size( ) == numberOfPoints,
+              "Inconsistent sizes in interpolate curve: " << interpolationPoints[0].size() << " != " << interpolationPoints[1].size())
+
+    CIE_CHECK(0 < polynomialDegree && polynomialDegree < interpolationPoints[0].size(),
+              "Invalid polynomial degree " << polynomialDegree << " for " << interpolationPoints[0].size() << " points")
 
     std::vector<double> parameterPositions = centripetalParameterPositions( interpolationPoints );
     std::vector<double> knotVector = knotVectorUsingAveraging( parameterPositions, polynomialDegree );
 
-    linalg::Matrix N( numberOfPoints, numberOfPoints );
+    linalg::DynamicEigenMatrix<double> N( numberOfPoints, numberOfPoints );
 
     // Set up interpolation matrix
-    for( size_t iInterpolationPoint = 0; iInterpolationPoint < numberOfPoints; ++iInterpolationPoint )
-    {
-        for( size_t iControlPoint = 0; iControlPoint < numberOfPoints; ++iControlPoint )
-        {
+    for( size_t iInterpolationPoint = 0; iInterpolationPoint < numberOfPoints; ++iInterpolationPoint ) {
+        for( size_t iControlPoint = 0; iControlPoint < numberOfPoints; ++iControlPoint ) {
             N( iInterpolationPoint, iControlPoint ) = evaluateBSplineBasis( parameterPositions[iInterpolationPoint],
                 iControlPoint, polynomialDegree, knotVector );
-
         } // iControlPoint
     } // iInterpolationPoint
 
     ControlPoints2D controlPoints;
 
     // First x, then y coordinates
-    for( size_t iAxis = 0; iAxis < 2; ++iAxis )
-    {
-        controlPoints[iAxis] = linalg::solve( N, interpolationPoints[iAxis] );
+    const auto factorized = N.wrapped().partialPivLu();
+    for( size_t i_axis = 0; i_axis < 2; ++i_axis ) {
+        Eigen::Map<const Eigen::Matrix<double,Eigen::Dynamic,1>> rhs(interpolationPoints[i_axis].data(),
+                                                                     interpolationPoints[i_axis].size());
+        controlPoints[i_axis].resize(interpolationPoints[i_axis].size());
+        Eigen::Map<Eigen::Matrix<double,Eigen::Dynamic,1>> result(controlPoints[i_axis].data(),
+                                                                  controlPoints[i_axis].size());
+        result = factorized.solve(rhs);
+    } // i_axis
 
-    } // iAxis
-
-    return { controlPoints, knotVector };
+    return {controlPoints, knotVector};
 }
 
 
@@ -141,8 +154,8 @@ std::vector<double> centripetalParameterPositions( const ControlPoints2D& interp
 
 StaticArray<std::vector<double>, 2> centripetalParameterPositions(const VectorOfMatrices& interpolationPoints)
     {
-    size_t sizeR(interpolationPoints[0].size1());
-    size_t sizeS(interpolationPoints[0].size2());
+    size_t sizeR(interpolationPoints[0].rowSize());
+    size_t sizeS(interpolationPoints[0].columnSize());
     std::vector<double> parameterPositionsR(sizeR, 0.0);
     std::vector<double> parameterPositionsS(sizeS, 0.0);
     double dx, dy, dz, d;
