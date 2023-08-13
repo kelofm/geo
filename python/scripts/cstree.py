@@ -6,9 +6,10 @@ import numpy
 import cie.geo
 
 
+center = numpy.array([0.5, 0.5])
 def predicate(node: cie.geo.ContiguousCubeTree2DNode):
     vertices = node.getVertices()
-    s = sum(n < 0.5 for n in [numpy.linalg.norm(vertex - numpy.array([0.5, 0.5])) for vertex in vertices])
+    s = sum(n < 0.5 for n in [numpy.linalg.norm(vertex - center) for vertex in vertices])
     return 0 < s and s < len(vertices)
 
 
@@ -21,14 +22,14 @@ for tree in trees:
 
 
 figure, axes = pyplot.subplots()
+indexMap = [0, 1, 3, 2, 0]
 def plotNode(node, level) -> bool:
-    #if node.isLeaf() and level == maxLevel:
+    if node.isLeaf() and level == maxLevel:
         vertices = numpy.array(node.getVertices()).transpose()
-        indexMap = [0, 1, 3, 2, 0]
         axes.plot(vertices[0,indexMap],
                   vertices[1,indexMap])
         return True
-    #return True
+    return True
 for tree in trees:
     tree.visit(plotNode)
 

@@ -1,4 +1,4 @@
-from cie.geo import *
+import cie.geo
 import numpy
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
@@ -6,7 +6,7 @@ import matplotlib.tri as tri
 n = 20
 l = 1.0
 
-parameters = TriangulationParameters( )
+parameters = cie.geo.TriangulationParameters( )
 
 # bottom edge, right edge, top edge, left edge
 polygonVertices = [ [ ( l * i ) / n, 0.0        ] for i in range(n) ] + \
@@ -14,7 +14,7 @@ polygonVertices = [ [ ( l * i ) / n, 0.0        ] for i in range(n) ] + \
                   [ [ l * ( n - i ) / n, l      ] for i in range(n) ] + \
                   [ [ 0.0, l * ( n - i ) / n    ] for i in range(n) ]
 
-[vertices, connectivity] = triangulate( polygonVertices, parameters )
+[vertices, connectivity] = cie.geo.triangulate( polygonVertices, parameters )
 
 vertices = numpy.array( vertices )
 connectivity = numpy.array( connectivity )

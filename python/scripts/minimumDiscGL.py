@@ -2,7 +2,7 @@
 import numpy as np
 
 # --- Vispy imports ---
-from vispy import scene, app
+from vispy import app
 
 # --- Visualization imports ---
 from cie.glvisuals import LineMarkerCanvas, Observer
@@ -11,7 +11,7 @@ from cie.glvisuals import LineVisual
 # --- GEO Imports ---
 import cie.geo as geo
 
-# -----------------------------------------------------------
+
 class MinimumDiscObserver(Observer):
     def __init__(self, subject):
         Observer.__init__(self,subject)
