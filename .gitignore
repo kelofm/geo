@@ -1,16 +1,23 @@
 /*
 !.gitignore
+!.github
+
 !packages
 !python
 !inc
 !src
 !test
 !external
+!data
+!docs
+
 !CMakeLists.txt
 !Config.cmake.in
 !build.sh
 !readme
 !license
+
+!dependencies_*.txt
 
 *.cache
 __pycache__

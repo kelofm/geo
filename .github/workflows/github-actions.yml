@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "*.md"
+      - "*.html"
+      - "docs/*"
+      - "*.gitignore"
+      - "license"
+      - "readme"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  testrunner:
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [ADDRESS, THREAD, UB]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create python venv
+        run: python3 -m venv penv
+      - name: Clone repository
+        run: |
+          git clone https://github.com/kelofm/cieutils.git --depth 1
+          git clone https://github.com/kelofm/linalg.git --depth 1
+          git clone https://github.com/kelofm/geo.git --depth 1
+      - name: Install packages
+        run: |
+          sudo apt install libopenmpi-dev catch2
+          sudo xargs apt install < cieutils/dependencies_ubuntu.txt
+          sudo xargs apt install < linalg/dependencies_ubuntu.txt
+      - name: Build dependencies
+        # OpenMPI is leaking all over the place (according to ASAN), so disable it for now
+        #run: ./build.sh -t Debug -o "-CIEUTILS_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON" -o "-DCIEUTILS_ENABLE_MPI=ON"
+        run: |
+          source penv/bin/activate
+          ./cieutils/build.sh -t Debug -o "-DCIEUTILS_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON"
+          ./linalg/build.sh -t Debug -o "-DCIEUTILS_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON"
+      - name: Build
+        run: |
+          source penv/bin/activate
+          ./geo/build.sh -t Debug -o "-DLINALG_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON"
+      - name: Run tests
+        run: ./geo/build/bin/geo_testrunner
+
+  generate-docs:
+    needs: testrunner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install packages
+        run: sudo apt install findutils doxygen graphviz
+      - name: Clone dependencies
+        run: |
+          git clone https://github.com/kelofm/cieutils.git --depth 1
+          git clone https://github.com/kelofm/linalg.git --depth 1
+          git clone https://github.com/kelofm/geo.git --depth 1
+      - name: Generate docs for dependencies
+        run: |
+          cd cieutils/docs
+          doxygen doxyfile
+          cd ../../linalg/docs
+          doxygen doxyfile
+      - name: Update doc branch with current master
+        run: |
+          cd geo
+          git config --local user.name $USER_NAME
+          git config --local user.email "in@valid.email"
+          git branch -D doc &>/dev/null || true
+          git checkout -b doc
+        env:
+          USER_NAME: matekelemen
+      - name: Generate docs
+        run: |
+          cd geo/docs
+          TAGFILES="../../cieutils/docs/cieutils_doxygen_tagfile"
+          TAGFILES="$TAGFILES:../../linalg/docs/linalg_doxygen_tagfile"
+          ( cat doxyfile ; echo "TAGFILES=$TAGFILES" ) | doxygen -
+      - name: Generate root index.html
+        run: |
+          cd geo
+          echo "<meta http-equiv=\"refresh\" content=\"0; docs/html/index.html\">" > index.html
+      - name: Update remote
+        run: |
+          cd geo
+          git add index.html docs/html -f
+          git commit -m "update docs"
+          git push -f https://$USER_NAME:$GITHUB_TOKEN@github.com/kelofm/geo.git doc
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          USER_NAME: matekelemen
