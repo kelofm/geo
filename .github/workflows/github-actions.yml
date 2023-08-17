@@ -29,21 +29,26 @@ jobs:
         run: python3 -m venv penv
       - name: Clone repository
         run: |
-          git clone https://github.com/kelofm/cieutils.git --depth 1
-          git clone https://github.com/kelofm/linalg.git --depth 1
-          git clone https://github.com/kelofm/geo.git --depth 1
+          for lib in "cieutils" "linalg" "geo"; do
+            git clone https://github.com/kelofm/${lib}.git --depth 1
+          done
       - name: Install packages
         run: |
           sudo apt install libopenmpi-dev catch2
-          sudo xargs apt install < cieutils/dependencies_ubuntu.txt
-          sudo xargs apt install < linalg/dependencies_ubuntu.txt
+          for lib in "cieutils" "linalg" "geo"; do
+            if [ -f "$lib/dependencies_ubuntu.txt" ]; then
+              sudo xargs apt install < $lib/dependencies_ubuntu.txt
+            fi
+          done
       - name: Build dependencies
         # OpenMPI is leaking all over the place (according to ASAN), so disable it for now
         #run: ./build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}" -o "-DCIEUTILS_ENABLE_MPI=ON"
         run: |
           source penv/bin/activate
-          ./cieutils/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}"
-          ./linalg/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}"
+          for lib in "cieutils" "linalg"; do
+            libUpper=$(echo "$lib" | tr a-z A-Z)
+            ./$lib/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize={{ matrix.sanitizer }}" -o "-D${libUpper}_BUILD_TESTS:BOOL=OFF"
+          done
       - name: Build
         run: |
           source penv/bin/activate
@@ -59,15 +64,17 @@ jobs:
         run: sudo apt install findutils doxygen graphviz
       - name: Clone dependencies
         run: |
-          git clone https://github.com/kelofm/cieutils.git --depth 1
-          git clone https://github.com/kelofm/linalg.git --depth 1
-          git clone https://github.com/kelofm/geo.git --depth 1
+          for lib in "cieutils" "linalg" "geo"; do
+            git clone https://github.com/kelofm/${lib}.git --depth 1
+          done
       - name: Generate docs for dependencies
         run: |
           cd cieutils/docs
+          TAGFILES=""
           doxygen doxyfile
           cd ../../linalg/docs
-          doxygen doxyfile
+          TAGFILES="$TAGFILES ../../cieutils/docs/cieutils_doxygen_tagfile=../../../cieutils/docs/html"
+          ( cat doxyfile ; echo "TAGFILES=$TAGFILES" ) | doxygen -
       - name: Update doc branch with current master
         run: |
           cd geo
@@ -80,8 +87,10 @@ jobs:
       - name: Generate docs
         run: |
           cd geo/docs
-          TAGFILES="../../cieutils/docs/cieutils_doxygen_tagfile"
-          TAGFILES="$TAGFILES:../../linalg/docs/linalg_doxygen_tagfile"
+          TAGFILES=""
+          for lib in "cieutils" "linalg"; do
+            TAGFILES="$TAGFILES ../../$lib/docs/${lib}_doxygen_tagfile=../../../$lib/docs/html"
+          done
           ( cat doxyfile ; echo "TAGFILES=$TAGFILES" ) | doxygen -
       - name: Generate root index.html
         run: |
