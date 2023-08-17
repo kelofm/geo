@@ -47,7 +47,7 @@ jobs:
           source penv/bin/activate
           for lib in "cieutils" "linalg"; do
             libUpper=$(echo "$lib" | tr a-z A-Z)
-            ./$lib/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize={{ matrix.sanitizer }}" -o "-D${libUpper}_BUILD_TESTS:BOOL=OFF"
+            ./$lib/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}" -o "-D${libUpper}_BUILD_TESTS:BOOL=OFF"
           done
       - name: Build
         run: |
