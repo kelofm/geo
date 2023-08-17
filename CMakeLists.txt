@@ -39,12 +39,12 @@ target_include_directories(${PROJECT_NAME}
 
 set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Targets LIBRARY DESTINATION "cie/lib")
-install(DIRECTORY packages DESTINATION "cie/include" FILES_MATCHING PATTERN "*.hpp")
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/packages" DESTINATION "cie/include" FILES_MATCHING PATTERN "*.hpp")
 
 # Build test executable
 if (${PROJECT_NAME_UPPER}_BUILD_TESTS)
     file(GLOB_RECURSE test_sources "${CMAKE_CURRENT_SOURCE_DIR}/packages/*/test/*.cpp")
-    list(INSERT test_sources 0 test/${PROJECT_NAME}_testrunner.cpp)
+    list(INSERT test_sources 0 "${CMAKE_CURRENT_SOURCE_DIR}/test/${PROJECT_NAME}_testrunner.cpp")
 
     add_executable(${PROJECT_NAME}_testrunner ${test_sources})
     target_link_libraries(${PROJECT_NAME}_testrunner PRIVATE ${PROJECT_NAME})
