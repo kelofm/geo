@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sanitizer: [ADDRESS, THREAD, UB]
+        sanitizer: [address, thread, undefined]
     runs-on: ubuntu-latest
     steps:
       - name: Create python venv
@@ -39,15 +39,15 @@ jobs:
           sudo xargs apt install < linalg/dependencies_ubuntu.txt
       - name: Build dependencies
         # OpenMPI is leaking all over the place (according to ASAN), so disable it for now
-        #run: ./build.sh -t Debug -o "-CIEUTILS_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON" -o "-DCIEUTILS_ENABLE_MPI=ON"
+        #run: ./build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}" -o "-DCIEUTILS_ENABLE_MPI=ON"
         run: |
           source penv/bin/activate
-          ./cieutils/build.sh -t Debug -o "-DCIEUTILS_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON"
-          ./linalg/build.sh -t Debug -o "-DCIEUTILS_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON"
+          ./cieutils/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}"
+          ./linalg/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}"
       - name: Build
         run: |
           source penv/bin/activate
-          ./geo/build.sh -t Debug -o "-DLINALG_ENABLE_${{ matrix.sanitizer }}_SANITIZER=ON"
+          ./geo/build.sh -t Debug -o "-DCMAKE_CXX_FLAGS=-fsanitize=${{ matrix.sanitizer }}"
       - name: Run tests
         run: ./geo/build/bin/geo_testrunner
 
