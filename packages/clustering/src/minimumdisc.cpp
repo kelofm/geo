@@ -1,7 +1,6 @@
 // --- Linalg Includes ---
 #include "packages/matrix/inc/StaticEigenMatrix.hpp"
 #include "packages/overloads/inc/matrix_operators.hpp"
-#include "packages/overloads/inc/vector_operators.hpp"
 #include "packages/overloads/inc/vectoroperators.hpp"
 
 // --- Utility Includes ---
