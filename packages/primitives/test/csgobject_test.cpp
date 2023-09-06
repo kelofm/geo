@@ -22,10 +22,8 @@ template <  Size N,
 class TestObject : public Object<N,ValueType,CoordinateType>
 {
 protected:
-    ValueType at(const typename TestObject::Point& point) const override
-    {
-        return ValueType();
-    }
+    ValueType at(const typename TestObject::Point&) const override
+    {return ValueType();}
 };
 
 

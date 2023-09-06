@@ -10,11 +10,11 @@ namespace cie::geo {
 
 namespace detail {
 template <concepts::Object T>
-bool isObject( const T& reference ) { return true; }
+bool isObject(const T&) {return true;}
 
 template <class T>
 requires (!concepts::Object<T>)
-bool isObject( const T& reference ) { return false; }
+bool isObject(const T&) {return false;}
 } // namespace detail
 
 

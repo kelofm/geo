@@ -31,10 +31,12 @@ ControlPointsAndKnotVector3D interpolateWithBSplineSurface(const VectorOfMatrice
     size_t sizeS(interpolationPoints[0].columnSize());
     size_t numberOfPoints = sizeR * sizeS;
 
+    #ifdef CIE_ENABLE_OUT_OF_RANGE_CHECKS
     for (const auto& r_matrix : interpolationPoints) {
         CIE_OUT_OF_RANGE_CHECK(r_matrix.rowSize() == sizeR, "")
         CIE_OUT_OF_RANGE_CHECK(r_matrix.columnSize() == sizeS, "")
     }
+    #endif
 
     // Get parameter positions at interpolation points
     StaticArray<std::vector<double>,2> parameterPositionsRS = centripetalParameterPositions(interpolationPoints);

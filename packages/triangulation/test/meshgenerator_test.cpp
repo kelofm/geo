@@ -274,7 +274,7 @@ CIE_TEST_CASE_METHOD( CircularRegionFixture, "attemptDivision", "[meshgenerator]
   double alpha = std::atan( 1.0 / 3.0 ) + M_PI / 4.0;
   double delta = 1e-5;
 
-  bool result;
+  bool result = false;
 
   CIE_TEST_SECTION( "small angle" )
   {
@@ -319,9 +319,9 @@ CIE_TEST_CASE( "attemptDivisionLessThanFourVertices", "[meshgenerator]" )
   Vertex2DVector vertices{ { 0.0, 0.0 }, { 1.0, 0.0 }, { 1.0, 1.0 } };
   std::vector<IndexVector> regions{ { 0, 1, 2 } };
 
-  bool result;
+  bool result = false;
 
-  CIE_TEST_REQUIRE_NOTHROW( result = meshgeneratorhelper::attemptDivision( vertices, regions, 0, M_PI / 4.0, 1.0 ) );
+  CIE_TEST_REQUIRE_NOTHROW(result = meshgeneratorhelper::attemptDivision( vertices, regions, 0, M_PI / 4.0, 1.0 ));
 
   CIE_TEST_CHECK( result == true );
   CIE_TEST_CHECK( vertices.size( ) ==  3 );

@@ -29,7 +29,7 @@ Cell<TPrimitive>::Cell(const typename Cell<TPrimitive>::Point& base,
 
 template <concepts::Cube TPrimitive>
 inline typename Cell<TPrimitive>::primitive_constructor_container
-Cell<TPrimitive>::split_internal(const typename Cell<TPrimitive>::Point& point)
+Cell<TPrimitive>::split_internal(const typename Cell<TPrimitive>::Point&)
 {
     CIE_BEGIN_EXCEPTION_TRACING
 

@@ -148,21 +148,17 @@ StaticArray<std::vector<double>, 2> evaluate2DCurveDeBoor( const std::vector<dou
     std::vector<double> curveX( numberOfSamples, 0.0 );
     std::vector<double> curveY( numberOfSamples, 0.0 );
 
-    #pragma omp parallel for collapse(2)
-    for( int i = 0; i < static_cast<int>(numberOfSamples); ++i )
-    {
-        for( size_t j = 0; j < numberOfPoints; ++j )
-        {
+    //#pragma omp parallel for collapse(2)
+    for( int i = 0; i < static_cast<int>(numberOfSamples); ++i ) {
+        for( size_t j = 0; j < numberOfPoints; ++j ) {
             size_t s = findKnotSpan( tCoordinates[i], numberOfPoints, knotVector );
-
             StaticArray<double, 2> Point = deBoorOptimized( tCoordinates[i], s, p, knotVector, xCoordinates, yCoordinates );
-
             curveX[i] = Point[0];
             curveY[i] = Point[1];
         }
     }
 
-    return { curveX, curveY};
+    return {curveX, curveY};
 }
 
 } // cie::geo

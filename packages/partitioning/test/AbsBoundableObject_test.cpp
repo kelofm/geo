@@ -16,7 +16,7 @@ public:
         _counter( 0 )
     { this->computeBoundingBox(); }
 
-    const Size counter() const 
+    Size counter() const
     { return this->_counter; }
 
     void setBoundingBoxShouldRecompute()
@@ -41,13 +41,13 @@ concept NotBoxBoundable
 
 
 template <concepts::BoxBoundable T>
-bool isBoxBoundable( const T& r_object )
-{ return true; }
+bool isBoxBoundable(const T&)
+{return true;}
 
 
 template <NotBoxBoundable T>
-bool isBoxBoundable( const T& r_object )
-{ return false; }
+bool isBoxBoundable(const T&)
+{return false;}
 
 
 

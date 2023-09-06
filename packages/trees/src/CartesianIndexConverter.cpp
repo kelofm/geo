@@ -87,8 +87,10 @@ CartesianIndexConverter<Dim,TIndex,TFlat,tags::Lazy>::CartesianIndexConverter(co
 
     _prefixPopulation.back() = _prefixPopulation[Dim - 1] * r_resolution.back();
 
+    #ifdef CIE_ENABLE_DIVISION_BY_ZERO_CHECKS
     for (TIndex resolution : _prefixPopulation)
         CIE_DIVISION_BY_ZERO_CHECK(resolution != 0)
+    #endif
 
     CIE_END_EXCEPTION_TRACING
 }

@@ -38,7 +38,7 @@ CIE_TEST_CASE( "MarchingSquares", "[marchingprimitives]" )
             new TargetType( {0.0,0.0}, 1.0 )
         );
 
-        auto outputFunctor = []( Size primitiveIndex, const MarchingSquares::output_arguments& r_edges ) -> void
+        auto outputFunctor = [](Size, const MarchingSquares::output_arguments&) -> void
         {};
 
         auto p_primitives = MarchingSquares::primitive_container_ptr(
@@ -84,7 +84,7 @@ CIE_TEST_CASE( "MarchingCubes", "[marchingprimitives]" )
         );
 
         std::vector<TestType::output_arguments> outputs;
-        auto outputFunctor = [&outputs]( Size primitiveIndex, const TestType::output_arguments& r_edges ) -> void
+        auto outputFunctor = [](Size, const TestType::output_arguments&) -> void
         {};
 
         auto p_primitives = TestType::primitive_container_ptr(
@@ -126,7 +126,7 @@ CIE_TEST_CASE( "MarchingCubes", "[marchingprimitives]" )
         );
 
         std::vector<TestType::output_arguments> outputs;
-        auto outputFunctor = [&outputs]( Size primitiveIndex, const TestType::output_arguments& r_edges ) -> void
+        auto outputFunctor = [](Size, const TestType::output_arguments&) -> void
         {};
 
         auto pool = mp::ThreadPoolSingleton::get();
@@ -161,7 +161,7 @@ CIE_TEST_CASE( "MarchingBoxes", "[marchingprimitives]" )
         );
 
         std::vector<TestType::output_arguments> outputs;
-        auto outputFunctor = [&outputs]( Size primitiveIndex, const TestType::output_arguments& r_edges ) -> void
+        auto outputFunctor = [](Size, const TestType::output_arguments&) -> void
         {};
 
         auto p_primitives = TestType::primitive_container_ptr(
@@ -202,7 +202,7 @@ CIE_TEST_CASE( "MarchingBoxes", "[marchingprimitives]" )
         );
 
         std::vector<TestType::output_arguments> outputs;
-        auto outputFunctor = [&outputs]( Size primitiveIndex, const TestType::output_arguments& r_edges ) -> void
+        auto outputFunctor = [](Size, const TestType::output_arguments&) -> void
         {};
 
         auto pool = mp::ThreadPoolSingleton::get();

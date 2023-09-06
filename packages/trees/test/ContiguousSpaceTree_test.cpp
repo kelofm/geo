@@ -23,7 +23,6 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
 
     {
         CIE_TEST_CASE_INIT("Square")
-        const Size Dimension = 2;
         using Geometry = Cube<2,Coordinate>;
         using Tree = ContiguousSpaceTree<Geometry,Index>;
 
@@ -49,7 +48,7 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
         CIE_TEST_CHECK(tree.size() == 45);
 
         // Check scan following a full tree
-        const auto infiniteBoundary = [](Ref<const Tree::Node> r_node) {return true;};
+        const auto infiniteBoundary = [](Ref<const Tree::Node>) {return true;};
         CIE_TEST_REQUIRE_NOTHROW(tree.scan(infiniteBoundary, 3));
         CIE_TEST_REQUIRE_NOTHROW(tree.scan(unitCircle, 3));
         CIE_TEST_CHECK(tree.size() == 45);
@@ -57,7 +56,6 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
 
     {
         CIE_TEST_CASE_INIT("Box")
-        const Size Dimension = 2;
         using Geometry = Box<2,Coordinate>;
         using Tree = ContiguousSpaceTree<Geometry,Index>;
 
@@ -85,7 +83,7 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
         CIE_TEST_CHECK(tree.size() == 61);
 
         // Check scan following a full tree
-        const auto infiniteBoundary = [](Ref<const Tree::Node> r_node) {return true;};
+        const auto infiniteBoundary = [](Ref<const Tree::Node>) {return true;};
         CIE_TEST_REQUIRE_NOTHROW(tree.scan(infiniteBoundary, 3));
         CIE_TEST_REQUIRE_NOTHROW(tree.scan(unitCircle, 3));
         CIE_TEST_CHECK(tree.size() == 61);
