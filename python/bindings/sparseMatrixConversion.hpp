@@ -15,8 +15,8 @@ public:
 
     // Convet sparse data structure to three numpy arrays and make sure memory is freed properly
     static pybind11::handle cast( const cie::geo::SparseDataStructure& constSrc,
-                                  pybind11::return_value_policy policy,
-                                  pybind11::handle parent )
+                                  [[maybe_unused]] pybind11::return_value_policy policy,
+                                  [[maybe_unused]] pybind11::handle parent )
     {
         auto& src = const_cast<cie::geo::SparseDataStructure&>( constSrc );
 

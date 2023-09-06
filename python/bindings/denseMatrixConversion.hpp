@@ -54,8 +54,8 @@ PYBIND11_TYPE_CASTER(cie::linalg::DynamicEigenMatrix<cie::Double>, _("cie::linal
 
     // Conversion from our C++ cie::linalg::Matrix to python numpy array
     static pybind11::handle cast(const cie::linalg::DynamicEigenMatrix<cie::Double>& src,
-                                 pybind11::return_value_policy policy,
-                                 pybind11::handle parent)
+                                 [[maybe_unused]] pybind11::return_value_policy policy,
+                                 [[maybe_unused]] pybind11::handle parent)
     {
         // Construct array with shape ( rowSize, columnSize ) from the given cie::linalg::Matrix
         return pybind11::array( std::vector<cie::Size>{ src.rowSize( ), src.columnSize( ) },

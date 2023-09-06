@@ -84,7 +84,6 @@ template <class TTree>
 void makeContiguousSpaceTreeBindings(Ref<pybind11::module_> r_module,
                                      std::string r_name)
 {
-    constexpr unsigned Dimension = TTree::Dimension;
     using View = utils::TransformView<TTree,NodeWrapper<TTree>>;
     using Pair = DummyPair<TTree,std::optional<View>>;
 
