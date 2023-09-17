@@ -77,7 +77,10 @@ if (${PROJECT_NAME_UPPER}_BUILD_PYTHON_MODULE)
     file(GLOB_RECURSE python_module_sources "${CMAKE_CURRENT_SOURCE_DIR}/python/bindings/*.cpp")
     pybind11_add_module(${PROJECT_NAME}_python_bindings MODULE ${python_module_sources})
     target_link_libraries(${PROJECT_NAME}_python_bindings PRIVATE ${PROJECT_NAME})
-    set_target_properties(${PROJECT_NAME}_python_bindings PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+    set_target_properties(${PROJECT_NAME}_python_bindings PROPERTIES
+                          LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+                          ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+                          INSTALL_RPATH "$ORIGIN")
 
     # Each subdirectory in modules is assumed to be a python module
     # and is installed as-is
