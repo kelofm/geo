@@ -47,13 +47,11 @@ WeightedSplitPolicy<PointIterator,ValueIterator>::operator()(ValueIterator it_va
             absMaxValue = std::abs(*it);
 
     // Second pass: weight points and accumulate weights
-    for (; it_valueBegin!=it_valueEnd; ++it_valueBegin,++it_pointBegin)
-    {
+    for (; it_valueBegin!=it_valueEnd; ++it_valueBegin,++it_pointBegin) {
         weight = absMaxValue - std::abs(*it_valueBegin);
         weightSum += weight;
 
-        for (auto&& [r_component, r_splitComponent, r_min, r_max] : utils::zip(*it_pointBegin, splitPoint, min, max))
-        {
+        for (auto&& [r_component, r_splitComponent, r_min, r_max] : utils::zip(*it_pointBegin, splitPoint, min, max)) {
             r_splitComponent += weight * r_component;
 
             if (r_component < r_min)
@@ -68,8 +66,7 @@ WeightedSplitPolicy<PointIterator,ValueIterator>::operator()(ValueIterator it_va
     if (weightSum == 0)
         weightSum = 1;
 
-    for (auto&& [r_component, r_min, r_max] : utils::zip(splitPoint, min, max))
-    {
+    for (auto&& [r_component, r_min, r_max] : utils::zip(splitPoint, min, max)) {
         r_component /= weightSum;
 
         if (r_component < r_min)
