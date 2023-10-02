@@ -147,7 +147,7 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         // Check number of objects and maximum level
         Size objectCounter = 0;
 
-        auto nodeVisitFunctor = [&objectCounter]( Node* p_node ) -> bool {
+        auto nodeVisitFunctor = [&objectCounter, maxLevel=maxLevel, maxObjects=maxObjects]( Node* p_node ) -> bool {
             CIE_TEST_CHECK( p_node->intersectedObjects().size() == 0 );
             CIE_TEST_CHECK( p_node->level() <= maxLevel );
             if (p_node->isLeaf()) {
