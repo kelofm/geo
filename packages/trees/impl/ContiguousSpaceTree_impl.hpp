@@ -134,7 +134,7 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::ContiguousSpaceTree(RightRef<TArgs>.
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
-template <concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TBaseIt, concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TLengthIt>
+template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
 ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometry(TIndex i_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
 {
@@ -144,7 +144,7 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometry(TIndex i_node, TBase
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
-template <concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TBaseIt, concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TLengthIt>
+template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
 ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometry(Ref<const Node> r_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
 {
@@ -192,13 +192,13 @@ public:
     CSTNodeInputIterator operator++(int) noexcept
     {return CSTNodeInputIterator(*this);}
 
-    friend CSTNodeInputIterator operator+(CSTNodeInputIterator lhs, difference_type rhs)
+    friend CSTNodeInputIterator operator+(CSTNodeInputIterator lhs, difference_type)
     {return CSTNodeInputIterator(lhs._i_parent);}
 
-    friend Bool operator<(CSTNodeInputIterator lhs, CSTNodeInputIterator rhs)
+    friend Bool operator<(CSTNodeInputIterator, CSTNodeInputIterator)
     {return false;}
 
-    friend Bool operator!=(CSTNodeInputIterator lhs, CSTNodeInputIterator rhs)
+    friend Bool operator!=(CSTNodeInputIterator, CSTNodeInputIterator)
     {CIE_THROW(NotImplementedException, "") return true;}
 
 private:
@@ -222,7 +222,7 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::split(TIndex i_node)
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
-template <concepts::CallableWith<Ref<const typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Node>> TPredicate>
+template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>> TPredicate>
 inline void
 ContiguousSpaceTree<TGeometry,TIndex,TTag>::scan(TPredicate&& r_predicate, TIndex maxDepth)
 {
@@ -304,7 +304,7 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeTrace(Ref<const Node> r_node)
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
-template <concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TBaseIt, concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TLengthIt>
+template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
 ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> r_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
 requires concepts::Cube<TGeometry>
@@ -333,7 +333,7 @@ requires concepts::Cube<TGeometry>
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
-template <concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TBaseIt, concepts::Iterator<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::Coordinate> TLengthIt>
+template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
 ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> r_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
 requires concepts::Box<TGeometry>

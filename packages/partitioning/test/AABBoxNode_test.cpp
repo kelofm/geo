@@ -27,7 +27,7 @@ public:
         AABBox<2,Double>( r_base, r_lengths ) {}
 private:
     void computeBoundingBox_impl( typename TestAABBoxNodeObjectType::bounding_box& r_box ) override
-    { r_box = *this; }
+    {r_box = *this;}
 };
 
 
@@ -57,8 +57,8 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
             for ( Size j=0; j<numberOfCellsPerDimension; ++j )
             {
                 auto p_object = ObjectPtr( new Object(
-                    { Double(i)/numberOfCellsPerDimension, Double(j)/numberOfCellsPerDimension },
-                    { 1.0 / numberOfCellsPerDimension, 1.0 / numberOfCellsPerDimension }
+                    {Double(i)/numberOfCellsPerDimension, Double(j)/numberOfCellsPerDimension},
+                    {1.0 / numberOfCellsPerDimension, 1.0 / numberOfCellsPerDimension}
                 ) );
                 objects.push_back( p_object );
             }
@@ -66,8 +66,8 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         // Generate root node
         Double delta = 0.0;
         auto p_root = NodePtr(
-            new Node( { -delta, -delta },
-                    { 1.0+2*delta, 1.0+2*delta },
+            new Node( {-delta, -delta},
+                    {1.0+2*delta, 1.0+2*delta},
                     typename Node::self_ptr() )
         );
 
@@ -88,16 +88,12 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
 
         // Check number of objects and maximum levels
         {
-            auto nodeVisitFunction = [maxObjects,maxLevel]( Node* p_node ) -> bool
-            {
-                CIE_TEST_CHECK( p_node->level() <= maxLevel );
-
-                if ( p_node->isLeaf() )
+            auto nodeVisitFunction = [](Node* p_node) -> bool {
+                CIE_TEST_CHECK(p_node->level() <= maxLevel);
+                if (p_node->isLeaf())
                     CIE_TEST_CHECK( p_node->containedObjects().size() <= maxObjects );
-
                 return true;
             };
-
             CIE_TEST_CHECK_NOTHROW( p_root->visit(nodeVisitFunction) );
         }
     }
@@ -124,13 +120,13 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
 
         // Construct root and add points to it
         CIE_TEST_REQUIRE_NOTHROW( NodePtr( new Node(
-            { 0.0, 0.0 },
-            { 1.0, 1.0 },
+            {0.0, 0.0},
+            {1.0, 1.0},
             Node::self_ptr()
         ) ) );
         auto p_root = NodePtr( new Node(
-            { 0.0, 0.0 },
-            { 1.0, 1.0 },
+            {0.0, 0.0},
+            {1.0, 1.0},
             Node::self_ptr()
         ) );
 
@@ -141,8 +137,8 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         CIE_TEST_CHECK( p_root->intersectedObjects().size() == 0 );
 
         // Check partitioning
-        const Size maxObjects = 5;
-        const Size maxLevel   = 3;
+        constexpr Size maxObjects = 5;
+        constexpr Size maxLevel   = 3;
         bool partitionSuccess = false;
 
         CIE_TEST_CHECK_NOTHROW( partitionSuccess = p_root->partition(maxObjects,maxLevel) );
@@ -151,18 +147,14 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         // Check number of objects and maximum level
         Size objectCounter = 0;
 
-        auto nodeVisitFunctor = [&objectCounter,maxObjects,maxLevel]( Node* p_node ) -> bool
-        {
+        auto nodeVisitFunctor = [&objectCounter]( Node* p_node ) -> bool {
             CIE_TEST_CHECK( p_node->intersectedObjects().size() == 0 );
             CIE_TEST_CHECK( p_node->level() <= maxLevel );
-
-            if ( p_node->isLeaf() )
-            {
+            if (p_node->isLeaf()) {
                 Size numberOfContainedObjects = p_node->containedObjects().size();
                 CIE_TEST_CHECK( numberOfContainedObjects <= maxObjects );
                 objectCounter += numberOfContainedObjects;
             }
-
             return true;
         };
 

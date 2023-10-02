@@ -35,9 +35,8 @@ SpaceTreeNode<TCell,TValue>::SpaceTreeNode(const typename SpaceTreeNode<TCell,TV
 
 
 template <class TCell, class TValue>
-inline bool
-SpaceTreeNode<TCell,TValue>::divide(Ref<const Target> r_target,
-                                    Size level)
+bool SpaceTreeNode<TCell,TValue>::divide(Ref<const Target> r_target,
+                                         Size level)
 {
     CIE_BEGIN_EXCEPTION_TRACING
 
@@ -57,7 +56,7 @@ SpaceTreeNode<TCell,TValue>::divide(Ref<const Target> r_target,
 
 template <class TCell, class TValue>
 template <concepts::ThreadPool TPool>
-inline bool
+bool
 SpaceTreeNode<TCell,TValue>::divide(const typename SpaceTreeNode<TCell,TValue>::Target& r_target,
                                     Size level,
                                     TPool& r_threadPool)
@@ -78,8 +77,8 @@ SpaceTreeNode<TCell,TValue>::divide(const typename SpaceTreeNode<TCell,TValue>::
 
 
 template <class TCell, class TValue>
-template <concepts::CallableWith<const SpaceTreeNode<TCell,TValue>&> TFunction>
-inline void
+template <concepts::Function TFunction>
+void
 SpaceTreeNode<TCell,TValue>::scan(const Target& r_target, const TFunction& r_function, const Size level)
 {
     auto pool = mp::ThreadPoolSingleton::get();
@@ -88,8 +87,8 @@ SpaceTreeNode<TCell,TValue>::scan(const Target& r_target, const TFunction& r_fun
 
 
 template <class TCell, class TValue>
-template <concepts::CallableWith<const SpaceTreeNode<TCell,TValue>&> TFunction, concepts::ThreadPool TPool>
-inline void
+template <concepts::Function TFunction, concepts::ThreadPool TPool>
+void
 SpaceTreeNode<TCell,TValue>::scan(const Target& r_target, const TFunction& r_function, const Size level, TPool& r_pool)
 {
     this->scanImpl(r_target, r_function, level, r_pool);
@@ -98,22 +97,20 @@ SpaceTreeNode<TCell,TValue>::scan(const Target& r_target, const TFunction& r_fun
 
 
 template <class TCell, class TValue>
-template <concepts::CallableWith<const SpaceTreeNode<TCell,TValue>&> TFunction, concepts::ThreadPool TPool>
+template <concepts::Function TFunction, concepts::ThreadPool TPool>
 void
 SpaceTreeNode<TCell,TValue>::scanImpl(const Target& r_target, const TFunction& r_function, const Size level, TPool& r_pool)
 {
     CIE_BEGIN_EXCEPTION_TRACING
     CIE_PROFILE_SCOPE
 
-    if (level > this->level())
-    {
+    if (level > this->level()) {
         // Evaluate target and set the boundary flag
         value_container_type values;
         this->evaluate(r_target, values);
 
         // Split if boundary
-        if (this->isBoundary())
-        {
+        if (this->isBoundary()) {
             const auto splitPoint = _p_splitPolicy->operator()(
                 values.begin(),
                 values.end(),
@@ -130,8 +127,7 @@ SpaceTreeNode<TCell,TValue>::scanImpl(const Target& r_target, const TFunction& r
                              level,
                              &r_pool]()
             {
-                for (const auto& r_cellConstructor : cellConstructors)
-                {
+                for (const auto& r_cellConstructor : cellConstructors) {
                     const auto compoundConstructor = std::tuple_cat(nodeConstructor, r_cellConstructor);
                     auto node = std::make_from_tuple<SpaceTreeNode>(compoundConstructor);
                     node.scanImpl(r_target, r_function, level, r_pool);
@@ -149,7 +145,7 @@ SpaceTreeNode<TCell,TValue>::scanImpl(const Target& r_target, const TFunction& r
 
 
 template <class TCell, class TValue>
-inline void
+void
 SpaceTreeNode<TCell,TValue>::evaluate(const typename SpaceTreeNode<TCell,TValue>::Target& r_target)
 {
     CIE_BEGIN_EXCEPTION_TRACING
@@ -164,12 +160,10 @@ SpaceTreeNode<TCell,TValue>::evaluate(const typename SpaceTreeNode<TCell,TValue>
     ++it_point;
 
     // Evaluate the rest of the points
-    for (Size i=1; i<_p_sampler->size(); ++i)
-    {
+    for (Size i=1; i<_p_sampler->size(); ++i) {
         const auto value = r_target(*it_point);
         ++it_point;
-        if ((0 < value) != isFirstValuePositive)
-        {
+        if ((0 < value) != isFirstValuePositive) {
             _isBoundary = detail::BoundaryTag::True;
             break;
         }
@@ -184,7 +178,7 @@ SpaceTreeNode<TCell,TValue>::evaluate(const typename SpaceTreeNode<TCell,TValue>
 
 
 template <class TCell, class TValue>
-inline void
+void
 SpaceTreeNode<TCell,TValue>::evaluate(const typename SpaceTreeNode<TCell,TValue>::Target& r_target,
                                       typename SpaceTreeNode<TCell,TValue>::value_container_type& r_valueContainer)
 {
@@ -206,13 +200,11 @@ SpaceTreeNode<TCell,TValue>::evaluate(const typename SpaceTreeNode<TCell,TValue>
     const auto it_valueEnd = r_valueContainer.end();
 
     // Evaluate the rest of the points
-    for (; it_value!=it_valueEnd; ++it_value,++it_point)
-    {
+    for (; it_value!=it_valueEnd; ++it_value,++it_point) {
         *it_value = r_target(*it_point);
 
         // Boundary check
-        if ((0 < (*it_value)) != isFirstValuePositive)
-        {
+        if ((0 < (*it_value)) != isFirstValuePositive) {
             _isBoundary = detail::BoundaryTag::True;
             //break;
         }
@@ -227,7 +219,7 @@ SpaceTreeNode<TCell,TValue>::evaluate(const typename SpaceTreeNode<TCell,TValue>
 
 
 template <class TCell, class TValue>
-inline void
+void
 SpaceTreeNode<TCell,TValue>::clear()
 {
     // Clear data
@@ -239,7 +231,7 @@ SpaceTreeNode<TCell,TValue>::clear()
 
 
 template <class TCell, class TValue>
-inline bool
+bool
 SpaceTreeNode<TCell,TValue>::isBoundary() const
 {
     CIE_CHECK(_isBoundary != detail::BoundaryTag::Null,
@@ -261,7 +253,7 @@ SpaceTreeNode<TCell,TValue>::getSamplePoints() const
 
 
 template <class TCell, class TValue>
-inline void
+void
 SpaceTreeNode<TCell,TValue>::setSplitPolicy(typename SpaceTreeNode<TCell,TValue>::split_policy_ptr p_splitPolicy)
 {
     _p_splitPolicy = p_splitPolicy;
@@ -270,7 +262,7 @@ SpaceTreeNode<TCell,TValue>::setSplitPolicy(typename SpaceTreeNode<TCell,TValue>
 
 
 template <class TCell, class TValue>
-inline void
+void
 SpaceTreeNode<TCell,TValue>::setSampler(typename SpaceTreeNode<TCell,TValue>::sampler_ptr p_sampler)
 {
     // Set pointer
@@ -282,7 +274,7 @@ SpaceTreeNode<TCell,TValue>::setSampler(typename SpaceTreeNode<TCell,TValue>::sa
 
 
 template <class TCell, class TValue>
-inline const typename SpaceTreeNode<TCell,TValue>::split_policy_ptr&
+const typename SpaceTreeNode<TCell,TValue>::split_policy_ptr&
 SpaceTreeNode<TCell,TValue>::splitPolicy() const
 {
     return _p_splitPolicy;
@@ -290,7 +282,7 @@ SpaceTreeNode<TCell,TValue>::splitPolicy() const
 
 
 template <class TCell, class TValue>
-inline const typename SpaceTreeNode<TCell,TValue>::sampler_ptr&
+const typename SpaceTreeNode<TCell,TValue>::sampler_ptr&
 SpaceTreeNode<TCell,TValue>::sampler() const
 {
     return _p_sampler;
@@ -299,7 +291,7 @@ SpaceTreeNode<TCell,TValue>::sampler() const
 
 template <class TCell, class TValue>
 template <concepts::ThreadPool TPool>
-inline bool
+bool
 SpaceTreeNode<TCell,TValue>::divideImpl(const typename SpaceTreeNode<TCell,TValue>::Target& r_target,
                                         Size level,
                                         TPool& r_pool)
@@ -318,8 +310,7 @@ SpaceTreeNode<TCell,TValue>::divideImpl(const typename SpaceTreeNode<TCell,TValu
         return false;
 
     // Split if boundary
-    if (this->isBoundary())
-    {
+    if (this->isBoundary()) {
         const auto splitPoint = _p_splitPolicy->operator()(
             values.begin(),
             values.end(),
@@ -332,8 +323,7 @@ SpaceTreeNode<TCell,TValue>::divideImpl(const typename SpaceTreeNode<TCell,TValu
         const auto cellConstructors = this->split(splitPoint);
         utils::reserve(this->children(), cellConstructors.size());
 
-        for (const auto& cellConstructor : cellConstructors)
-        {
+        for (const auto& cellConstructor : cellConstructors) {
             // Construct a child
             const auto compoundConstructor = std::tuple_cat(nodeConstructor, cellConstructor);
             auto node = std::make_from_tuple<SpaceTreeNode>(compoundConstructor);

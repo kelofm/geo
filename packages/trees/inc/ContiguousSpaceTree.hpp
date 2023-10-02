@@ -157,7 +157,7 @@ public:
      *  @param maxDepth: stop splitting nodes after reaching this depth.
      *  @note Nodes at @a maxDepth are not fed to the predicate.
      */
-    template <concepts::CallableWith<Ref<const Node>> TPredicate>
+    template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>> TPredicate>
     void scan(TPredicate&& r_predicate, TIndex maxDepth);
 
     TIndex getIndex(Ref<const Node> r_node) const;

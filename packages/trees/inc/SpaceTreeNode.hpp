@@ -185,12 +185,12 @@ public:
     template <concepts::ThreadPool TPool>
     bool divide(const Target& r_target, Size level, TPool& r_pool);
 
-    template <concepts::CallableWith<const SpaceTreeNode&> TFunction>
+    template <concepts::Function TFunction>
     void scan(const Target& r_target,
               const TFunction& r_function,
               const Size level);
 
-    template <concepts::CallableWith<const SpaceTreeNode&> TFunction, concepts::ThreadPool TPool>
+    template <concepts::Function TFunction, concepts::ThreadPool TPool>
     void scan(const Target& r_target,
               const TFunction& r_function,
               const Size level,
@@ -228,7 +228,7 @@ protected:
                     Size level,
                     TPool& r_pool);
 
-    template <concepts::CallableWith<const SpaceTreeNode&> TFunction, concepts::ThreadPool TPool>
+    template <concepts::Function TFunction, concepts::ThreadPool TPool>
     void scanImpl(const Target& r_target,
                   const TFunction& r_function,
                   const Size level,
