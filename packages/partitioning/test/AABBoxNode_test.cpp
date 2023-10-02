@@ -77,8 +77,8 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         CIE_TEST_CHECK( p_root->containedObjects().size() == numberOfCellsPerDimension*numberOfCellsPerDimension );
 
         // Partition
-        const Size maxObjects = 3;
-        const Size maxLevel   = 5;
+        constexpr Size maxObjects = 3;
+        constexpr Size maxLevel   = 5;
         bool partitionSuccess = false;
 
         CIE_TEST_CHECK_NOTHROW( partitionSuccess = p_root->partition( maxObjects, maxLevel ) );
@@ -88,7 +88,7 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
 
         // Check number of objects and maximum levels
         {
-            auto nodeVisitFunction = [](Node* p_node) -> bool {
+            auto nodeVisitFunction = [maxLevel=maxLevel,maxObjects=maxObjects](Node* p_node) -> bool {
                 CIE_TEST_CHECK(p_node->level() <= maxLevel);
                 if (p_node->isLeaf())
                     CIE_TEST_CHECK( p_node->containedObjects().size() <= maxObjects );
