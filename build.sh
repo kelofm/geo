@@ -59,8 +59,10 @@ while getopts "hpt:b:i:c:o:" arg; do
             cmakeArguments="$cmakeArguments;$OPTARG"
             ;;
         \?) # Unrecognized argument
-            echo "Error: unrecognized argument $arg"
-            exit 1;;
+            print_help
+            echo "Error: unrecognized argument -$OPTARG"
+            exit 1
+            ;;
     esac
 done
 
@@ -85,8 +87,8 @@ case "$(uname -s)" in
         toolchainBin="${toolchainRoot}/bin"
         toolchainLib="${toolchainRoot}/lib"
         toolchainInclude="${toolchainRoot}/include"
-        cc="$toolchainBin/clang"
-        cxx="$toolchainBin/clang++"
+        export cc="$toolchainBin/clang"
+        export cxx="$toolchainBin/clang++"
         ;;
     \?)
         echo "Error: unsupported OS $(uname -s)"
@@ -120,7 +122,6 @@ if ! cmake                                                  \
     "-G${generator}"                                        \
     "-DCMAKE_C_COMPILER:STRING=$cc"                         \
     "-DCMAKE_CXX_COMPILER:STRING=$cxx"                      \
-    "-DCMAKE_BUILD_TYPE:STRING=$buildType"                  \
     "-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON"                     \
     "-D${projectNameUpper}_BUILD_SHARED_LIBRARY:BOOL=ON"    \
     "-D${projectNameUpper}_BUILD_PYTHON_MODULE:BOOL=ON"     \
@@ -128,12 +129,12 @@ if ! cmake                                                  \
     "$cCacheFlag"                                           \
     $(echo $cmakeArguments | tr '\;' '\n')                  \
     ; then
-    exit $?
+    exit 1
 fi
 
 # Build and install
-if ! cmake --build "$buildDir" --target install -j; then
-    exit $?
+if ! cmake --build "$buildDir" --config "$buildType" --target install -j; then
+    exit 1
 fi
 
 # Package
@@ -144,6 +145,7 @@ if [ $package -eq 1 ]; then
         ninja package
         ninja package_source
     else
+        echo make package
         make package
         make package_source
     fi
