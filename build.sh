@@ -7,6 +7,7 @@ projectNameUpper=$(printf '%s\n' "$projectName" | awk '{ print toupper($0) }')
 
 print_help() {
     echo "$scriptName - Configure, build, and install $(basename $scriptDir)"
+    echo "Usage: $scriptName [OPTION [ARGUMENT]]"
     echo "-h                : print this help and exit"
     echo "-p                : package after building"
     echo "-t build-type     : build type [Debug, Release, RelWithDebInfo] (default: Release)"
@@ -36,7 +37,7 @@ cmakeArguments=""
 cc="gcc"
 cxx="g++"
 
-while getopts "hpt:b:i:c:o:" arg; do
+while getopts ":h p t: b: i: c: o:" arg; do
     case "$arg" in
         h)  # Print help and exit without doing anything
             print_help
