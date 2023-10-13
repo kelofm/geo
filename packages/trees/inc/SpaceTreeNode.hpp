@@ -15,6 +15,7 @@
 #include "packages/stl_extension/inc/DynamicArray.hpp"
 #include "packages/concurrency/inc/ThreadPool.hpp"
 #include "packages/compile_time/packages/concepts/inc/functional.hpp"
+#include "packages/stl_extension/inc/OptionalRef.hpp"
 
 // --- STL Includes ---
 #include <iterator>
@@ -226,13 +227,13 @@ protected:
     template <concepts::ThreadPool TPool>
     bool divideImpl(const Target& r_target,
                     Size level,
-                    TPool& r_pool);
+                    OptionalRef<TPool> r_pool);
 
-    template <concepts::Function TFunction, concepts::ThreadPool TPool>
+    template <concepts::ThreadPool TPool, concepts::Function TFunction>
     void scanImpl(const Target& r_target,
                   const TFunction& r_function,
                   const Size level,
-                  TPool& r_pool);
+                  OptionalRef<TPool> r_pool);
 
 protected:
     split_policy_ptr _p_splitPolicy;

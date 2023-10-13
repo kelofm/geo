@@ -1,5 +1,5 @@
 // --- Utility Includes ---
-#include "packages/concurrency/inc/ThreadPoolSingleton.hpp"
+#include "packages/concurrency/inc/ThreadPool.hpp"
 #include "packages/testing/inc/essentials.hpp"
 
 // --- GEO Includes ---
@@ -52,7 +52,8 @@ CIE_TEST_CASE( "MarchingSquares", "[marchingprimitives]" )
             *p_primitives
         );
 
-        auto pool = mp::ThreadPoolSingleton::get();
+        mp::ThreadPoolBase threads;
+        mp::ThreadPool<> pool(threads);
         MarchingSquares marchingSquares( p_unitCircle,
                                          p_primitives,
                                          outputFunctor );
@@ -100,7 +101,8 @@ CIE_TEST_CASE( "MarchingCubes", "[marchingprimitives]" )
                                 p_primitives,
                                 outputFunctor );
 
-        auto pool = mp::ThreadPoolSingleton::get();
+        mp::ThreadPoolBase threads;
+        mp::ThreadPool<> pool(threads);
         marchingCubes.execute(pool);
 
 //      for ( const auto& r_triangle : outputs )
@@ -129,7 +131,8 @@ CIE_TEST_CASE( "MarchingCubes", "[marchingprimitives]" )
         auto outputFunctor = [](Size, const TestType::output_arguments&) -> void
         {};
 
-        auto pool = mp::ThreadPoolSingleton::get();
+        mp::ThreadPoolBase threads;
+        mp::ThreadPool<> pool(threads);
         TestType(p_unitSphere,
                  domain,
                  numberOfPoints,
@@ -176,7 +179,8 @@ CIE_TEST_CASE( "MarchingBoxes", "[marchingprimitives]" )
                                 p_primitives,
                                 outputFunctor );
 
-        auto pool = mp::ThreadPoolSingleton::get();
+        mp::ThreadPoolBase threads;
+        mp::ThreadPool<> pool(threads);
         marchingBoxes.execute(pool);
 
 //      for ( const auto& r_triangle : outputs )
@@ -205,7 +209,8 @@ CIE_TEST_CASE( "MarchingBoxes", "[marchingprimitives]" )
         auto outputFunctor = [](Size, const TestType::output_arguments&) -> void
         {};
 
-        auto pool = mp::ThreadPoolSingleton::get();
+        mp::ThreadPoolBase threads;
+        mp::ThreadPool<> pool(threads);
         TestType( p_unitSphere,
                   domain,
                   numberOfPoints,

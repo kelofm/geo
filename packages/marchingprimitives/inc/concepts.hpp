@@ -3,7 +3,7 @@
 
 // --- Utility Includes ---
 #include "packages/compile_time/packages/concepts/inc/basic_concepts.hpp"
-#include "packages/concurrency/inc/ThreadPoolSingleton.hpp"
+#include "packages/concurrency/inc/ThreadPool.hpp"
 
 // --- Mesh Includes ---
 #include "packages/traits/inc/MeshTraits.hpp"

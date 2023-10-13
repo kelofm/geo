@@ -53,11 +53,8 @@ AbsMarchingPrimitives<TargetType>::executeImpl(std::optional<std::reference_wrap
     CIE_BEGIN_EXCEPTION_TRACING
 
     this->checkInitialized();
-
     const Size numberOfPrimitivesToProcess = this->numberOfRemainingPrimitives();
-
-    auto job = [=,this](Size primitiveIndex) -> void
-    {
+    auto job = [=,this](Size primitiveIndex) -> void {
         Size configurationIndex = 0;
         const Size numberOfVerticesPerPrimitive = this->primitiveVertexCount();
 
@@ -81,15 +78,14 @@ AbsMarchingPrimitives<TargetType>::executeImpl(std::optional<std::reference_wrap
         }
     };
 
-    if (r_pool)
-    {
-        mp::ParallelFor<> loop;
-        loop.setPool(r_pool.value().get());
+    if (r_pool) {
+        mp::ParallelFor<> loop(r_pool.value().get());
         loop(numberOfPrimitivesToProcess, job);
-    }
-    else
-        for (Size primitiveIndex=0; primitiveIndex<numberOfPrimitivesToProcess; ++primitiveIndex)
+    } else {
+        for (Size primitiveIndex=0; primitiveIndex<numberOfPrimitivesToProcess; ++primitiveIndex) {
             job(primitiveIndex);
+        }
+    }
 
     CIE_END_EXCEPTION_TRACING
 }

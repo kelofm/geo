@@ -152,18 +152,21 @@ public:
     TIndex split(TIndex i_node);
 
     /** @brief Split nodes while a provided predicate says so or until the max depth is reached.
-     *  @tparam TPredicate: Unary predicate with signature: bool(Ref<const Node>)
+     *  @tparam TPredicate: Unary predicate with the following signature: @code bool(Ref<const Node>, TIndex) @endcode
+     *          The first argument refers to the current node, while the second one is its level.
      *  @param r_predicate: predicate deciding whether a node should be split.
-     *  @param maxDepth: stop splitting nodes after reaching this depth.
      *  @note Nodes at @a maxDepth are not fed to the predicate.
      */
-    template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>> TPredicate>
-    void scan(TPredicate&& r_predicate, TIndex maxDepth);
+    template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>,TIndex> TPredicate>
+    void scan(TPredicate&& r_predicate);
 
     TIndex getIndex(Ref<const Node> r_node) const;
 
 private:
     [[nodiscard]] std::pair<NodeTrace,unsigned> getNodeTrace(Ref<const Node> r_node) const;
+
+    template <class TPredicate>
+    void scanImpl(TPredicate&& r_predicate, TIndex maxDepth);
 
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
     void getNodeGeometryImpl(Ref<const Node> r_node,

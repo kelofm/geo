@@ -21,6 +21,8 @@ public:
     Cell( const typename Cell<PrimitiveType>::Point& base,
           typename Cell<PrimitiveType>::Coordinate length );
 
+    using AbsCell<PrimitiveType>::AbsCell;
+
     typename Cell<PrimitiveType>::primitive_constructor_container split( const typename Cell<PrimitiveType>::Point& r_point );
 
     /**
@@ -49,6 +51,8 @@ private:
 public:
     Cell( const typename Cell<PrimitiveType>::Point& base,
           const typename Cell<PrimitiveType>::Point& lengths );
+
+    using AbsCell<PrimitiveType>::AbsCell;
 
 protected:
     virtual typename Cell<PrimitiveType>::primitive_constructor_container split_internal( const typename Cell<PrimitiveType>::Point& point ) override;

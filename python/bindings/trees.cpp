@@ -100,15 +100,14 @@ void makeContiguousSpaceTreeBindings(Ref<pybind11::module_> r_module,
                 return Pair {TTree(r_base, edge), std::optional<View>()};
         }))
         .def("scan", [] (Ref<Pair> r_pair,
-                         std::function<bool(Ref<const NodeWrapper<TTree>>)> predicate,
-                         unsigned maxDepth) {
+                         std::function<bool(Ref<const NodeWrapper<TTree>>, typename TTree::Index)> predicate) {
             // Convert the predicate to one that takes a normal node instead of a wrapped one.
-            const auto wrappedPredicate = [predicate = std::move(predicate), &r_pair] (Ref<const typename TTree::Node> r_node) -> bool {
+            const auto wrappedPredicate = [predicate = std::move(predicate), &r_pair] (Ref<const typename TTree::Node> r_node, typename TTree::Index level) -> bool {
                 NodeWrapper<TTree> node(r_node, r_pair.first);
-                const bool output = predicate(node);
+                const bool output = predicate(node, level);
                 return output;
             };
-            r_pair.first.scan(wrappedPredicate, maxDepth);
+            r_pair.first.scan(wrappedPredicate);
         })
         .def("visit", [] (Ref<const Pair> r_pair,
                           Ref<const std::function<bool(Ref<const NodeWrapper<TTree>>, typename TTree::Index)>> r_functor) {

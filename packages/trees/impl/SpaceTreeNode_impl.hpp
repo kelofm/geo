@@ -2,17 +2,16 @@
 #define CIE_GEO_SPACETREENODE_IMPL_HPP
 
 // --- Utility Includes ---
-#include "packages/concurrency/inc/ThreadPoolSingleton.hpp"
 #include "packages/macros/inc/checks.hpp"
 #include "packages/macros/inc/exceptions.hpp"
 #include "packages/stl_extension/inc/resize.hpp"
 #include "packages/stl_extension/inc/make_shared_from_tuple.hpp"
-#include "cmake_variables.hpp"
 
 // --- GEO Includes ---
 #include "packages/trees/inc/SpaceTreeNode.hpp"
 
 // --- STL Includes ---
+#include <stdexcept>
 #include <tuple>
 
 
@@ -39,17 +38,12 @@ bool SpaceTreeNode<TCell,TValue>::divide(Ref<const Target> r_target,
                                          Size level)
 {
     CIE_BEGIN_EXCEPTION_TRACING
-
-    auto pool = mp::ThreadPoolSingleton::get();
-    bool result = this->divide(
+    bool result = this->divideImpl<mp::ThreadPool<>>(
         r_target,
         level,
-        pool
+        {}
     );
-    pool.barrier();
-
     return result;
-
     CIE_END_EXCEPTION_TRACING
 }
 
@@ -62,16 +56,11 @@ SpaceTreeNode<TCell,TValue>::divide(const typename SpaceTreeNode<TCell,TValue>::
                                     TPool& r_threadPool)
 {
     CIE_BEGIN_EXCEPTION_TRACING
-
-    bool result = this->divideImpl(
-        r_target,
-        level,
-        r_threadPool
-    );
+    bool result = this->divideImpl<TPool>(r_target,
+                                          level,
+                                          r_threadPool);
     r_threadPool.barrier();
-
     return result;
-
     CIE_END_EXCEPTION_TRACING
 }
 
@@ -81,8 +70,7 @@ template <concepts::Function TFunction>
 void
 SpaceTreeNode<TCell,TValue>::scan(const Target& r_target, const TFunction& r_function, const Size level)
 {
-    auto pool = mp::ThreadPoolSingleton::get();
-    this->scan(r_target, r_function, level, pool);
+    this->scanImpl<mp::ThreadPool<>>(r_target, r_function, level, {});
 }
 
 
@@ -91,15 +79,21 @@ template <concepts::Function TFunction, concepts::ThreadPool TPool>
 void
 SpaceTreeNode<TCell,TValue>::scan(const Target& r_target, const TFunction& r_function, const Size level, TPool& r_pool)
 {
-    this->scanImpl(r_target, r_function, level, r_pool);
+    this->scanImpl<TPool>(r_target,
+                          r_function,
+                          level,
+                          r_pool);
     r_pool.barrier();
 }
 
 
 template <class TCell, class TValue>
-template <concepts::Function TFunction, concepts::ThreadPool TPool>
+template <concepts::ThreadPool TPool, concepts::Function TFunction>
 void
-SpaceTreeNode<TCell,TValue>::scanImpl(const Target& r_target, const TFunction& r_function, const Size level, TPool& r_pool)
+SpaceTreeNode<TCell,TValue>::scanImpl(const Target& r_target,
+                                      const TFunction& r_function,
+                                      const Size level,
+                                      OptionalRef<TPool> r_pool)
 {
     CIE_BEGIN_EXCEPTION_TRACING
     CIE_PROFILE_SCOPE
@@ -120,23 +114,28 @@ SpaceTreeNode<TCell,TValue>::scanImpl(const Target& r_target, const TFunction& r
             auto nodeConstructor = std::make_tuple(_p_sampler, _p_splitPolicy, this->level() + 1);
             auto cellConstructors = this->split(splitPoint);
 
-            r_pool.queueJob([nodeConstructor = std::move(nodeConstructor),
-                             cellConstructors = std::move(cellConstructors),
-                             &r_function,
-                             &r_target,
-                             level,
-                             &r_pool]()
-            {
+            auto job = [nodeConstructor = std::move(nodeConstructor),
+                        cellConstructors = std::move(cellConstructors),
+                        &r_function,
+                        &r_target,
+                        level,
+                        &r_pool]() {
                 for (const auto& r_cellConstructor : cellConstructors) {
                     const auto compoundConstructor = std::tuple_cat(nodeConstructor, r_cellConstructor);
                     auto node = std::make_from_tuple<SpaceTreeNode>(compoundConstructor);
                     node.scanImpl(r_target, r_function, level, r_pool);
                 }
-            });
+            };
+            if (r_pool.has_value()) {
+                r_pool.value().queueJob(std::move(job));
+            } else {
+                job();
+            }
         }
     }
-    else
+    else {
         this->evaluate(r_target);
+    }
 
     r_function(*this);
 
@@ -294,7 +293,7 @@ template <concepts::ThreadPool TPool>
 bool
 SpaceTreeNode<TCell,TValue>::divideImpl(const typename SpaceTreeNode<TCell,TValue>::Target& r_target,
                                         Size level,
-                                        TPool& r_pool)
+                                        OptionalRef<TPool> r_pool)
 {
     CIE_BEGIN_EXCEPTION_TRACING
 
@@ -334,9 +333,15 @@ SpaceTreeNode<TCell,TValue>::divideImpl(const typename SpaceTreeNode<TCell,TValu
             auto& r_node = this->children().back();
 
             // Schedule divide on child
-            r_pool.queueJob([&r_node,&r_target,&r_pool,level]() -> void
-                {r_node.divideImpl(r_target, level, r_pool);}
-            );
+            auto job = [&r_node,&r_target,&r_pool,level]() -> void {
+                r_node.divideImpl(r_target, level, r_pool);
+            };
+
+            if (r_pool.has_value()) {
+                r_pool.value().queueJob(std::move(job));
+            } else {
+                job();
+            }
         }
 
         return true;

@@ -33,6 +33,9 @@ public:
     using primitive_constructor_container_ptr   = std::shared_ptr<primitive_constructor_container>;
 
 public:
+    AbsCell(RightRef<PrimitiveType> r_geometry) noexcept;
+
+    AbsCell(Ref<const PrimitiveType> r_geometry);
 
     /**
      * Construct a cell by forwarding incoming arguments to the

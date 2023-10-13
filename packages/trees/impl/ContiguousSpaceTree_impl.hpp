@@ -222,49 +222,47 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::split(TIndex i_node)
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
-template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>> TPredicate>
+template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>,TIndex> TPredicate>
 inline void
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::scan(TPredicate&& r_predicate, TIndex maxDepth)
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::scan(TPredicate&& r_predicate)
 {
     CIE_BEGIN_EXCEPTION_TRACING
 
-    if (maxDepth) {
-        using Pair = std::pair<TIndex,TIndex>; // <== {i_node, depth}
-        std::stack<Pair,DynamicArray<Pair>> indexStack;
+    using Pair = std::pair<TIndex,TIndex>; // <== {i_node, depth}
+    std::stack<Pair,DynamicArray<Pair>> indexStack;
 
-        { // Split root
-            Ref<Node> r_node = this->_nodes[0];
-            if (r_predicate(r_node) && 1 <= maxDepth) {
-                indexStack.emplace(r_node.isLeaf() ? this->split(0) : r_node.getChildBegin(),
-                                   1);
-            } else if (!r_node.isLeaf()) {
+    { // Split root
+        Ref<Node> r_node = this->_nodes[0];
+        if (r_predicate(r_node, 0)) {
+            indexStack.emplace(r_node.isLeaf() ? this->split(0) : r_node.getChildBegin(),
+                               1);
+        } else if (!r_node.isLeaf()) {
+            this->erase(r_node.getChildBegin());
+            r_node.unsetChildBegin();
+        }
+    } // Split root
+
+    while (!indexStack.empty()) {
+        const auto pair = indexStack.top();
+        indexStack.pop();
+        const auto newDepth = pair.second + 1;
+
+        // Loop over the siblings of the popped node (including the popped node)
+        for (TIndex i_sibling=0; i_sibling<Node::ChildrenPerNode; ++i_sibling) {
+            const TIndex i_node = pair.first + i_sibling;               // <== ID of the sibling
+            Ref<Node> r_node = this->_nodes[i_node];                    // <== mutable ref to the sibling
+            Ref<const Node> r_constNode = r_node;                       // <== immutable ref to the sibling
+
+            // Recurse a level further if the predicate approves AND the next level is enabled
+            if (r_predicate(r_constNode, newDepth)) {
+                indexStack.emplace(r_node.isLeaf() ? this->split(i_node) : r_node.getChildBegin(),
+                                    newDepth);
+            } else if (!r_node.isLeaf()) { // <== recursion denied => erase the children
                 this->erase(r_node.getChildBegin());
                 r_node.unsetChildBegin();
             }
-        } // Split root
-
-        while (!indexStack.empty()) {
-            const auto pair = indexStack.top();
-            indexStack.pop();
-            const auto newDepth = pair.second + 1;
-
-            // Loop over the siblings of the popped node (including the popped node)
-            for (TIndex i_sibling=0; i_sibling<Node::ChildrenPerNode; ++i_sibling) {
-                const TIndex i_node = pair.first + i_sibling;               // <== ID of the sibling
-                Ref<Node> r_node = this->_nodes[i_node];                    // <== mutable ref to the sibling
-                Ref<const Node> r_constNode = r_node;                       // <== immutable ref to the sibling
-
-                // Recurse a level further if the predicate approves AND the next level is enabled
-                if (newDepth <= maxDepth && r_predicate(r_constNode)) {
-                    indexStack.emplace(r_node.isLeaf() ? this->split(i_node) : r_node.getChildBegin(),
-                                       newDepth);
-                } else if (!r_node.isLeaf()) { // <== recursion denied => erase the children
-                    this->erase(r_node.getChildBegin());
-                    r_node.unsetChildBegin();
-                }
-            } // for i_sibling
-        } // while indexStack
-    } // if maxDepth
+        } // for i_sibling
+    } // while indexStack
 
     CIE_END_EXCEPTION_TRACING
 }

@@ -1,8 +1,26 @@
 #ifndef CIE_GEO_TREES_ABS_CELL_IMPL_HPP
 #define CIE_GEO_TREES_ABS_CELL_IMPL_HPP
 
+// --- Geo Includes ---
+#include "packages/trees/inc/AbsCell.hpp"
+
 
 namespace cie::geo {
+
+
+template <concepts::Primitive TPrimitive>
+AbsCell<TPrimitive>::AbsCell(RightRef<TPrimitive> r_geometry) noexcept
+    : TPrimitive(std::move(r_geometry))
+{
+}
+
+
+template <concepts::Primitive TPrimitive>
+AbsCell<TPrimitive>::AbsCell(Ref<const TPrimitive> r_geometry)
+    : TPrimitive(r_geometry)
+{
+}
+
 
 template <concepts::Primitive PrimitiveType>
 template <class ...Args>
