@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['same_5fas_5fnoqualifiers_2610',['same_as_noqualifiers',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#a23395221c999c0d412c4e9c26588cf7a',1,'cie::concepts']]],
+  ['samplepoints_2611',['samplePoints',['../classsplinekernel_1_1splinekernel_1_1SplineKernel.html#a49de6c2062f725c56a6ca62ab9dcef02',1,'splinekernel::splinekernel::SplineKernel']]],
+  ['selected_5findex_2612',['selected_index',['../classsplinekernel_1_1editlinevisual_1_1EditLineVisual.html#a0e7e94d78294b4eb2c79f59158acac2c',1,'splinekernel.editlinevisual.EditLineVisual.selected_index()'],['../classsplinekernel_1_1editmarkervisual_1_1EditMarkerVisual.html#a1bd75de64b2c1b95808e6cf9b7f67146',1,'splinekernel.editmarkervisual.EditMarkerVisual.selected_index()']]],
+  ['selected_5fpoint_2613',['selected_point',['../classsplinekernel_1_1editmarkervisual_1_1EditMarkerVisual.html#a6bc0e21afaa912d30d657fc304d87817',1,'splinekernel.editmarkervisual.EditMarkerVisual.selected_point()'],['../classsplinekernel_1_1editlinevisual_1_1EditLineVisual.html#a256e632b6d87aad251b77cf71d87bb02',1,'splinekernel.editlinevisual.EditLineVisual.selected_point()']]],
+  ['serializable_2614',['Serializable',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#adc54c8ad07738b0e4dd0d3d5e9969c01',1,'cie::concepts']]],
+  ['settings_2615',['settings',['../classsplinekernel_1_1canvas_1_1CanvasSpline2D.html#aba837396f70484c38beedba7b2538245',1,'splinekernel.canvas.CanvasSpline2D.settings()'],['../classsplinekernel_1_1appSurface_1_1ControlWidget.html#a2d058938b68985f42d63457dfdaf5c64',1,'splinekernel.appSurface.ControlWidget.settings()'],['../classsplinekernel_1_1appSpline2D_1_1ControlWidget.html#a5dfc2013bc8d167fc2a1d922e4274133',1,'splinekernel.appSpline2D.ControlWidget.settings()']]],
+  ['signal_5fobject_5fchanged_2616',['signal_object_changed',['../classsplinekernel_1_1appSpline2D_1_1ControlWidget.html#a256877fe7c8764b3eb8efe83bf53d61a',1,'splinekernel.appSpline2D.ControlWidget.signal_object_changed()'],['../classsplinekernel_1_1appSurface_1_1ControlWidget.html#a92ae8c868b170eb3f653dd4b71d09268',1,'splinekernel.appSurface.ControlWidget.signal_object_changed()']]],
+  ['signedinteger_2617',['SignedInteger',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#aeb32b96dda46097199231a7d6c553ebe',1,'cie::concepts']]],
+  ['size_2618',['size',['../../../../cieutils/docs/html/structcie_1_1StaticArrayTraits_3_01StaticArray_3_01T_00_01S_01_4_01_4.html#aa78ee42323250cadb7714dd51576172f',1,'cie::StaticArrayTraits&lt; StaticArray&lt; T, S &gt; &gt;::size()'],['../../../../cieutils/docs/html/structcie_1_1StaticArrayTraits_3_01std_1_1array_3_01T_00_01S_01_4_01_4.html#a15a719336250dffba654feef88f26fe9',1,'cie::StaticArrayTraits&lt; std::array&lt; T, S &gt; &gt;::size()']]],
+  ['splinekernel_2619',['splineKernel',['../classsplinekernel_1_1splinevisual_1_1SplineVisual.html#ac62a144fe1f64beca218b7b9f38ab9b1',1,'splinekernel::splinevisual::SplineVisual']]],
+  ['staticarray_2620',['StaticArray',['../../../../linalg/docs/html/namespacecie_1_1concepts.html#ac1914484531ae7b4d5d04207275c1ece',1,'cie::concepts']]],
+  ['staticcolumnsize_2621',['StaticColumnSize',['../../../../linalg/docs/html/namespacecie_1_1concepts.html#ae449b0e85d1328eadabfede0d8ad3d39',1,'cie::concepts']]],
+  ['staticcontainer_2622',['StaticContainer',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#ab53dfa5fab88e5c96be9adf68458f1df',1,'cie::concepts']]],
+  ['staticmatrix_2623',['StaticMatrix',['../../../../linalg/docs/html/namespacecie_1_1concepts.html#a0c17e09f284ed6930521f3a4d4425a79',1,'cie::concepts']]],
+  ['staticrowsize_2624',['StaticRowSize',['../../../../linalg/docs/html/namespacecie_1_1concepts.html#a27162c91e7e766d9365bffd9747c94e6',1,'cie::concepts']]],
+  ['stlexception_2625',['STLException',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#a197a2ac987296f9a80d41512b28e395c',1,'cie::concepts']]],
+  ['stlfunction_2626',['STLFunction',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#a93194243236884b82f8ce88049a17543',1,'cie::concepts']]],
+  ['stringstreamable_2627',['StringStreamable',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#a425687d0b2aedca8766bc5009089abca',1,'cie::concepts']]],
+  ['subtractable_2628',['Subtractable',['../../../../cieutils/docs/html/namespacecie_1_1concepts.html#af739bff23fa17d5e625a8c7d0b3c2d52',1,'cie::concepts']]],
+  ['supportedbase_2629',['SupportedBase',['../../../../cieutils/docs/html/namespacecie_1_1concepts_1_1io.html#abd702ca82390da79a17e04a00077d5e8',1,'cie::concepts::io']]],
+  ['supportedtype_2630',['SupportedType',['../../../../cieutils/docs/html/namespacecie_1_1concepts_1_1io.html#abbf80f24155c9bfdacd4641df8676520',1,'cie::concepts::io']]],
+  ['surfacekernel_2631',['surfaceKernel',['../classsplinekernel_1_1splinesurfacevisual_1_1SplineSurfaceVisual.html#ae8bcea55938aece4c31830f8ce9f2a1c',1,'splinekernel::splinesurfacevisual::SplineSurfaceVisual']]]
+];

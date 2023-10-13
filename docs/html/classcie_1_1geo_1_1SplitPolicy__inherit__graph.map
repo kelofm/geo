@@ -1,0 +1,6 @@
+<map id="cie::geo::SplitPolicy&lt; PointIterator, ValueIterator &gt;" name="cie::geo::SplitPolicy&lt; PointIterator, ValueIterator &gt;">
+<area shape="rect" id="node1" title=" " alt="" coords="255,5,480,112"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1LinearSplitPolicy.html" title=" " alt="" coords="5,160,231,252"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1MidPointSplitPolicy.html" title="Compute the arithmetic mean of the input points." alt="" coords="255,160,480,252"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1WeightedSplitPolicy.html" title=" " alt="" coords="504,160,729,252"/>
+</map>

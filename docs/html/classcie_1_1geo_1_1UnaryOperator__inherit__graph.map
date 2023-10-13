@@ -1,0 +1,15 @@
+<map id="cie::geo::UnaryOperator&lt; Dimension, ValueType, CoordinateType &gt;" name="cie::geo::UnaryOperator&lt; Dimension, ValueType, CoordinateType &gt;">
+<area shape="rect" id="node1" title=" " alt="" coords="409,729,595,939"/>
+<area shape="rect" id="node6" href="$classcie_1_1geo_1_1BinaryOperator.html" title=" " alt="" coords="241,1561,509,1756"/>
+<area shape="rect" id="node10" href="$classcie_1_1geo_1_1UnaryOperator.html" title=" " alt="" coords="391,1016,613,1225"/>
+<area shape="rect" id="node12" href="$classcie_1_1geo_1_1UnaryOperator.html" title=" " alt="" coords="638,1023,851,1218"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1Object.html" title=" " alt="" coords="396,529,608,680"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="424,160,569,252"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1Object.html" title="Interface for point&#45;queriable objects." alt="" coords="518,301,689,452"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1Traits.html" title="Basic templated traits that every object has in GEO." alt="" coords="415,5,578,97"/>
+<area shape="rect" id="node7" href="$classcie_1_1geo_1_1Intersection.html" title=" " alt="" coords="5,1805,236,1956"/>
+<area shape="rect" id="node8" href="$classcie_1_1geo_1_1Subtraction.html" title=" " alt="" coords="260,1805,491,1956"/>
+<area shape="rect" id="node9" href="$classcie_1_1geo_1_1Union.html" title=" " alt="" coords="515,1805,723,1956"/>
+<area shape="rect" id="node11" href="$classcie_1_1geo_1_1Complement.html" title=" " alt="" coords="392,1304,623,1455"/>
+<area shape="rect" id="node13" href="$classcie_1_1geo_1_1BinaryOperator.html" title=" " alt="" coords="649,1275,835,1484"/>
+</map>

@@ -1,0 +1,14 @@
+<map id="cie::geo::boolean::Box&lt; Dimension, CoordinateType &gt;" name="cie::geo::boolean::Box&lt; Dimension, CoordinateType &gt;">
+<area shape="rect" id="node1" title=" " alt="" coords="255,1108,465,1244"/>
+<area shape="rect" id="node11" href="$classcie_1_1geo_1_1AABBox.html" title=" " alt="" coords="243,1477,466,1657"/>
+<area shape="rect" id="node12" href="$classcie_1_1geo_1_1boolean_1_1Box.html" title=" " alt="" coords="377,1307,578,1428"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1Box.html" title=" " alt="" coords="191,820,385,1059"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1AbsPrimitive.html" title=" " alt="" coords="137,642,313,749"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="5,276,211,368"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1Traits.html" title="Basic templated traits that every object has in GEO." alt="" coords="231,5,393,97"/>
+<area shape="rect" id="node7" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="179,160,384,252"/>
+<area shape="rect" id="node9" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="429,160,574,252"/>
+<area shape="rect" id="node6" href="$classcie_1_1geo_1_1AbsPrimitive.html" title=" " alt="" coords="154,414,385,521"/>
+<area shape="rect" id="node8" href="$classcie_1_1geo_1_1Object.html" title=" " alt="" coords="338,620,550,771"/>
+<area shape="rect" id="node10" href="$classcie_1_1geo_1_1Object.html" title="Interface for point&#45;queriable objects." alt="" coords="472,392,643,543"/>
+</map>

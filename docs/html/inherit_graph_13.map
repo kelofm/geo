@@ -1,0 +1,6 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classcie_1_1geo_1_1SplitPolicy.html" title=" " alt="" coords="5,71,231,112"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1LinearSplitPolicy.html" title=" " alt="" coords="279,5,504,47"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1MidPointSplitPolicy.html" title="Compute the arithmetic mean of the input points." alt="" coords="279,71,504,112"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1WeightedSplitPolicy.html" title=" " alt="" coords="279,136,504,177"/>
+</map>
