@@ -37,7 +37,7 @@ cmakeArguments=""
 cc="gcc"
 cxx="g++"
 
-while getopts ":h p t: b: i: c: o:" arg; do
+while getopts ":h p t: b: i: o:" arg; do
     case "$arg" in
         h)  # Print help and exit without doing anything
             print_help
@@ -48,7 +48,7 @@ while getopts ":h p t: b: i: c: o:" arg; do
             ;;
         t)  # Set build type
             buildType="$OPTARG"
-            (("${buildType}" == "Debug" || "${buildType}" == "RelWithDebInfo" || "${buildType}" == "Release")) || (print_help && echo "Invalid build type: $buildType" && exit 1)
+            [[ "${buildType}" = "Debug" || "${buildType}" = "RelWithDebInfo" || "${buildType}" = "Release" ]] || (print_help && echo "Invalid build type: $buildType" && exit 1)
             ;;
         b)  # Set build directory
             buildDir="$OPTARG"
@@ -100,8 +100,8 @@ esac
 if ! [ -d "$buildDir" ]; then
     mkdir -p "$buildDir"
 else
-    rm -rf "$buildDir/cmake_install.cmake"
-    rm -rf "$buildDir/CMakeCache.txt"
+    rm -f "$buildDir/cmake_install.cmake"
+    rm -f "$buildDir/CMakeCache.txt"
     rm -rf "$buildDir/CMakeFiles"
 fi
 
@@ -121,6 +121,7 @@ if ! cmake                                                  \
     "-B$buildDir"                                           \
     "-DCMAKE_INSTALL_PREFIX:STRING=$installDir"             \
     "-G${generator}"                                        \
+    "-DCMAKE_BUILD_TYPE:STRING=$buildType"                  \
     "-DCMAKE_C_COMPILER:STRING=$cc"                         \
     "-DCMAKE_CXX_COMPILER:STRING=$cxx"                      \
     "-DCMAKE_COLOR_DIAGNOSTICS:BOOL=ON"                     \
