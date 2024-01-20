@@ -82,11 +82,9 @@ CIE_TEST_CASE( "computeAngleZero", "[meshGenerator]" )
 
   IndexVector region{ 0, 1, 2 };
 
-  double angle;
-
-  CIE_TEST_REQUIRE_NOTHROW( angle = meshgeneratorhelper::computeAngle( vertices, region, 0, 1, 2 ) );
-
-  CIE_TEST_CHECK( angle == Approx( 0.0 ).margin( 1e-7 ) );
+  double angle = 0.0;
+  CIE_TEST_REQUIRE_NOTHROW(angle = meshgeneratorhelper::computeAngle(vertices, region, 0, 1, 2 ));
+  CIE_TEST_CHECK(angle == Approx(0.0).margin(1e-7));
 
 } // computeAngle
 
@@ -98,11 +96,9 @@ CIE_TEST_CASE( "computeAngleZeroLength", "[meshgenerator]" )
                            { 1.0, 0.0 } };
   IndexVector region{ 0, 1, 2 };
 
-  double angle;
-
-  CIE_TEST_REQUIRE_NOTHROW( angle = meshgeneratorhelper::computeAngle( vertices, region, 0, 1, 2 ) );
-
-  CIE_TEST_CHECK( angle == Approx( 0.0 ).margin( 1e-7 ) );
+  double angle = 0.0;
+  CIE_TEST_REQUIRE_NOTHROW(angle = meshgeneratorhelper::computeAngle( vertices, region, 0, 1, 2 ));
+  CIE_TEST_CHECK(angle == Approx( 0.0 ).margin( 1e-7 ));
 
 } // computeAngle
 

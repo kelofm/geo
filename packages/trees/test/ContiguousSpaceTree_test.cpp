@@ -34,13 +34,13 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
             Tree::Point base;
             Tree::Coordinate edge;
             tree.getNodeGeometry(r_node, base.begin(), &edge);
-            bool isInside = linalg::norm2(base) < 1;
+            bool isInside = (linalg::norm2(base) < 1);
             base[0] += edge;
-            if (isInside != linalg::norm2(base) < 1) return true;
+            if (isInside != (linalg::norm2(base) < 1)) return true;
             base[1] += edge;
-            if (isInside != linalg::norm2(base) < 1) return true;
+            if (isInside != (linalg::norm2(base) < 1)) return true;
             base[0] -= edge;
-            if (isInside != linalg::norm2(base) < 1) return true;
+            if (isInside != (linalg::norm2(base) < 1)) return true;
             return false;
         };
 
@@ -70,13 +70,13 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
             Tree::Point base;
             Tree::Point edges;
             tree.getNodeGeometry(r_node, base.begin(), edges.begin());
-            bool isInside = linalg::norm2(base) < 1;
+            bool isInside = (linalg::norm2(base) < 1);
             base[0] += edges[0];
-            if (isInside != linalg::norm2(base) < 1) return true;
+            if (isInside != (linalg::norm2(base) < 1)) return true;
             base[1] += edges[1];
-            if (isInside != linalg::norm2(base) < 1) return true;
+            if (isInside != (linalg::norm2(base) < 1)) return true;
             base[0] -= edges[0];
-            if (isInside != linalg::norm2(base) < 1) return true;
+            if (isInside != (linalg::norm2(base) < 1)) return true;
             return false;
         };
 
