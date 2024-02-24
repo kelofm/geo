@@ -18,6 +18,9 @@ EXTRACT_STATIC         = YES
 CASE_SENSE_NAMES       = YES
 SHOW_INCLUDE_FILES     = NO
 
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+
 INPUT                  = ../readme      \
                          ../packages    \
                          ../inc         \
