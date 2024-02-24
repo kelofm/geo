@@ -1,0 +1,13 @@
+<map id="cie::geo::boolean::Cube&lt; Dimension, CoordinateType &gt;" name="cie::geo::boolean::Cube&lt; Dimension, CoordinateType &gt;">
+<area shape="rect" id="node1" title="Cube with point membership test." alt="" coords="214,1409,433,1545"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1Cube.html" title=" " alt="" coords="125,1121,327,1360"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1AbsPrimitive.html" title=" " alt="" coords="5,414,236,521"/>
+<area shape="rect" id="node7" href="$classcie_1_1geo_1_1AbsPrimitive.html" title=" " alt="" coords="131,642,307,749"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="18,160,223,252"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1Traits.html" title="Basic templated traits that every object has in GEO." alt="" coords="229,5,391,97"/>
+<area shape="rect" id="node8" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="207,276,413,368"/>
+<area shape="rect" id="node10" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="481,160,627,252"/>
+<area shape="rect" id="node6" href="$classcie_1_1geo_1_1Cube.html" title="Cube template." alt="" coords="125,820,327,1059"/>
+<area shape="rect" id="node9" href="$classcie_1_1geo_1_1Object.html" title=" " alt="" coords="332,620,544,771"/>
+<area shape="rect" id="node11" href="$classcie_1_1geo_1_1Object.html" title="Interface for point&#45;queriable objects." alt="" coords="473,392,643,543"/>
+</map>

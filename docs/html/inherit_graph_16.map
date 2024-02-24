@@ -1,0 +1,8 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="5,63,232,119"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1PrimitiveSampler.html" title=" " alt="" coords="280,37,475,79"/>
+<area shape="rect" id="node6" href="$classcie_1_1geo_1_1PrimitiveSampler.html" title="Interface for computing sample points on primitives." alt="" coords="280,103,475,144"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1AbsCartesianGridSampler.html" title="Interface for cartesian samplers." alt="" coords="523,5,717,47"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1CornerSampler_3_01TPrimitive_01_4.html" title=" " alt="" coords="531,71,709,112"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1CartesianGridSampler_3_01TPrimitive_01_4.html" title="Invalid default template." alt="" coords="765,5,989,47"/>
+</map>

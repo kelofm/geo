@@ -1,0 +1,13 @@
+<map id="cie::geo::boolean::Ellipsoid&lt; Dimension, CoordinateType &gt;" name="cie::geo::boolean::Ellipsoid&lt; Dimension, CoordinateType &gt;">
+<area shape="rect" id="node1" title="Ellipsoid with point membership test." alt="" coords="253,1409,420,1589"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1Ellipsoid.html" title=" " alt="" coords="153,1121,329,1360"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1AbsPrimitive.html" title=" " alt="" coords="5,414,236,521"/>
+<area shape="rect" id="node7" href="$classcie_1_1geo_1_1AbsPrimitive.html" title=" " alt="" coords="137,642,313,749"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="18,160,223,252"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1Traits.html" title="Basic templated traits that every object has in GEO." alt="" coords="229,5,391,97"/>
+<area shape="rect" id="node8" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="207,276,413,368"/>
+<area shape="rect" id="node10" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="481,160,627,252"/>
+<area shape="rect" id="node6" href="$classcie_1_1geo_1_1Ellipsoid.html" title="Ellipsoid template." alt="" coords="125,820,356,1059"/>
+<area shape="rect" id="node9" href="$classcie_1_1geo_1_1Object.html" title=" " alt="" coords="337,620,549,771"/>
+<area shape="rect" id="node11" href="$classcie_1_1geo_1_1Object.html" title="Interface for point&#45;queriable objects." alt="" coords="477,392,647,543"/>
+</map>

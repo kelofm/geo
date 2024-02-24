@@ -1,0 +1,9 @@
+<map id="cie::geo::PrimitiveSampler&lt; PrimitiveType &gt;" name="cie::geo::PrimitiveSampler&lt; PrimitiveType &gt;">
+<area shape="rect" id="node1" title="Interface for computing sample points on primitives." alt="" coords="241,331,436,452"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1PrimitiveSampler.html" title=" " alt="" coords="241,515,436,636"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="225,175,452,281"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1Traits.html" title="Basic templated traits that every object has in GEO." alt="" coords="257,5,420,97"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1AbsCartesianGridSampler.html" title="Interface for cartesian samplers." alt="" coords="10,693,225,843"/>
+<area shape="rect" id="node7" href="$classcie_1_1geo_1_1CornerSampler_3_01TPrimitive_01_4.html" title=" " alt="" coords="249,685,428,851"/>
+<area shape="rect" id="node6" href="$classcie_1_1geo_1_1CartesianGridSampler_3_01TPrimitive_01_4.html" title="Invalid default template." alt="" coords="5,900,229,1036"/>
+</map>

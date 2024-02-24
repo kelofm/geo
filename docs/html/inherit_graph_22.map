@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classGetTraitsT.html" title=" " alt="" coords="5,46,93,73"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1AbsMarchingPrimitives.html" title=" " alt="" coords="141,39,372,80"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1MarchingPrimitives.html" title=" " alt="" coords="420,39,627,80"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1StructuredMarchingPrimitives.html" title="MarchingPrimitives that scans a cartesian mesh of primitives." alt="" coords="675,5,916,47"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1UnstructuredMarchingPrimitives.html" title="MarchingPrimitives that scans a container of primitives." alt="" coords="675,71,916,112"/>
+</map>

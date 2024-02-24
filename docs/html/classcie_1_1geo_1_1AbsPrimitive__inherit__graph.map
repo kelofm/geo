@@ -1,0 +1,18 @@
+<map id="cie::geo::AbsPrimitive&lt; Dimension, CoordinateType &gt;" name="cie::geo::AbsPrimitive&lt; Dimension, CoordinateType &gt;">
+<area shape="rect" id="node1" title=" " alt="" coords="357,301,587,408"/>
+<area shape="rect" id="node4" href="$classcie_1_1geo_1_1Cube.html" title=" " alt="" coords="13,928,216,1167"/>
+<area shape="rect" id="node6" href="$classcie_1_1geo_1_1Ellipsoid.html" title=" " alt="" coords="923,928,1099,1167"/>
+<area shape="rect" id="node8" href="$classcie_1_1geo_1_1Sphere.html" title=" " alt="" coords="322,649,537,843"/>
+<area shape="rect" id="node10" href="$classcie_1_1geo_1_1AbsPrimitive.html" title=" " alt="" coords="467,471,643,577"/>
+<area shape="rect" id="node2" href="$classcie_1_1geo_1_1Traits.html" title=" " alt="" coords="369,160,575,252"/>
+<area shape="rect" id="node3" href="$classcie_1_1geo_1_1Traits.html" title="Basic templated traits that every object has in GEO." alt="" coords="391,5,553,97"/>
+<area shape="rect" id="node5" href="$classcie_1_1geo_1_1boolean_1_1Cube.html" title="Cube with point membership test." alt="" coords="5,1251,224,1387"/>
+<area shape="rect" id="node7" href="$classcie_1_1geo_1_1boolean_1_1Ellipsoid.html" title="Ellipsoid with point membership test." alt="" coords="927,1229,1094,1409"/>
+<area shape="rect" id="node9" href="$classcie_1_1geo_1_1boolean_1_1Sphere.html" title=" " alt="" coords="298,979,529,1115"/>
+<area shape="rect" id="node11" href="$classcie_1_1geo_1_1Box.html" title=" " alt="" coords="561,627,756,865"/>
+<area shape="rect" id="node15" href="$classcie_1_1geo_1_1Cube.html" title="Cube template." alt="" coords="95,627,297,865"/>
+<area shape="rect" id="node16" href="$classcie_1_1geo_1_1Ellipsoid.html" title="Ellipsoid template." alt="" coords="781,627,1011,865"/>
+<area shape="rect" id="node12" href="$classcie_1_1geo_1_1boolean_1_1Box.html" title=" " alt="" coords="653,1259,854,1380"/>
+<area shape="rect" id="node14" href="$classcie_1_1geo_1_1boolean_1_1Box.html" title=" " alt="" coords="553,979,764,1115"/>
+<area shape="rect" id="node13" href="$classcie_1_1geo_1_1AABBox.html" title=" " alt="" coords="519,1459,742,1639"/>
+</map>
