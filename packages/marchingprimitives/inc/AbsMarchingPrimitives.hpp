@@ -2,19 +2,11 @@
 #define CIE_MESHKERNEL_ABS_MARCHING_PRIMITIVES_HPP
 
 // --- Utility Includes ---
-#include "packages/stl_extension/inc/MarchingContainer.hpp"
 #include "packages/concurrency/inc/ThreadPool.hpp"
 #include "packages/stl_extension/inc/StaticArray.hpp"
 
-// --- GEO Includes ---
-#include "packages/primitives/inc/Primitive.hpp"
-#include "packages/primitives/inc/Object.hpp"
+// --- Geo Includes ---
 #include "packages/primitives/inc/Traits.hpp"
-#include "packages/primitives/inc/concepts.hpp"
-
-// --- Internal Includes ---
-#include "packages/marchingprimitives/inc/connectivitytables.hpp"
-#include "packages/traits/inc/MeshTraits.hpp"
 
 // --- STL Includes ---
 #include <memory>
