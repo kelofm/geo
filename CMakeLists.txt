@@ -36,7 +36,15 @@ if(${PROJECT_NAME_UPPER}_ENABLE_DIVISION_BY_ZERO_CHECKS)
     add_compile_definitions(CIE_ENABLE_DIVISION_BY_ZERO_CHECKS=1)
 endif()
 
-add_compile_options(-Wall -Wpedantic -Wextra -Wno-dangling-reference -Werror)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    add_compile_options(-Wall -Wpedantic -Wextra -Wno-dangling-reference -Werror)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_compile_options(-Wall -Wpedantic -Wextra -Werror)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    add_compile_options(-Wall -Wpedantic -Wextra -Werror)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    message(FATAL_ERROR "MSVC is not supported yet")
+endif ()
 
 # Build main library
 file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/packages/*/src/*.cpp")
