@@ -1,7 +1,7 @@
 #ifndef CIE_MESHKERNEL_ABS_MARCHING_PRIMITIVES_IMPL_HPP
 #define CIE_MESHKERNEL_ABS_MARCHING_PRIMITIVES_IMPL_HPP
 
-// --- Mesh Includes ---
+// --- Geo Includes ---
 #include "packages/marchingprimitives/inc/AbsMarchingPrimitives.hpp"
 
 // --- Utility Includes ---
@@ -54,7 +54,7 @@ AbsMarchingPrimitives<TargetType>::executeImpl(std::optional<std::reference_wrap
 
     this->checkInitialized();
     const Size numberOfPrimitivesToProcess = this->numberOfRemainingPrimitives();
-    auto job = [=,this](Size primitiveIndex) -> void {
+    auto job = [this](Size primitiveIndex) -> void {
         Size configurationIndex = 0;
         const Size numberOfVerticesPerPrimitive = this->primitiveVertexCount();
 
