@@ -45,8 +45,8 @@ CSTNode<Dim,TIndex>::CSTNode(TIndex parent) noexcept
 
 template <Size Dim, concepts::Integer TIndex>
 CSTNode<Dim,TIndex>::CSTNode(TIndex parent, TIndex childBegin) noexcept
-    : _i_parent(parent),
-      _i_childBegin(childBegin)
+    : _iParent(parent),
+      _iChildBegin(childBegin)
 {
 }
 
@@ -63,7 +63,7 @@ template <Size Dim, concepts::Integer TIndex>
 inline Bool
 CSTNode<Dim,TIndex>::isNull() const noexcept
 {
-    return _i_parent == std::numeric_limits<TIndex>::max() && _i_childBegin == 0;
+    return _iParent == std::numeric_limits<TIndex>::max() && _iChildBegin == 0;
 }
 
 
@@ -71,7 +71,7 @@ template <Size Dim, concepts::Integer TIndex>
 inline Bool
 CSTNode<Dim,TIndex>::isLeaf() const noexcept
 {
-    return !_i_childBegin;
+    return !_iChildBegin;
 }
 
 
@@ -79,7 +79,7 @@ template <Size Dim, concepts::Integer TIndex>
 inline TIndex
 CSTNode<Dim,TIndex>::getParentIndex() const noexcept
 {
-    return _i_parent;
+    return _iParent;
 }
 
 
@@ -87,7 +87,7 @@ template <Size Dim, concepts::Integer TIndex>
 inline TIndex
 CSTNode<Dim,TIndex>::getChildBegin() const noexcept
 {
-    return _i_childBegin;
+    return _iChildBegin;
 }
 
 
@@ -95,7 +95,7 @@ template <Size Dim, concepts::Integer TIndex>
 inline void
 CSTNode<Dim,TIndex>::setChildBegin(TIndex childBegin) noexcept
 {
-    _i_childBegin = childBegin;
+    _iChildBegin = childBegin;
 }
 
 
@@ -103,7 +103,7 @@ template <Size Dim, concepts::Integer TIndex>
 inline void
 CSTNode<Dim,TIndex>::unsetChildBegin() noexcept
 {
-    _i_childBegin = 0;
+    _iChildBegin = 0;
 }
 
 
@@ -126,8 +126,8 @@ constexpr unsigned ContiguousSpaceTree<TGeometry,TIndex,TTag>::maxLevels()
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 template <class ...TArgs>
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::ContiguousSpaceTree(RightRef<TArgs>... r_arguments)
-    : GeometryBase(std::forward<TArgs>(r_arguments)...),
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::ContiguousSpaceTree(RightRef<TArgs>... rArguments)
+    : GeometryBase(std::forward<TArgs>(rArguments)...),
       TreeBase()
 {
 }
@@ -136,19 +136,19 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::ContiguousSpaceTree(RightRef<TArgs>.
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometry(TIndex i_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometry(TIndex iNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const
 {
-    Ref<const Node> r_node = this->_nodes[i_node];
-    this->getNodeGeometry(r_node, it_baseBegin, it_lengthBegin);
+    Ref<const Node> rNode = this->_nodes[iNode];
+    this->getNodeGeometry(rNode, itBaseBegin, itLengthBegin);
 }
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometry(Ref<const Node> r_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometry(Ref<const Node> rNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const
 {
-    this->getNodeGeometryImpl(r_node, it_baseBegin, it_lengthBegin);
+    this->getNodeGeometryImpl(rNode, itBaseBegin, itLengthBegin);
 }
 
 
@@ -175,8 +175,8 @@ public:
 public:
     CSTNodeInputIterator() = delete;
 
-    CSTNodeInputIterator(Index i_parent) noexcept
-        : _i_parent(i_parent)
+    CSTNodeInputIterator(Index iParent) noexcept
+        : _iParent(iParent)
     {}
 
     CIE_DEFINE_CLASS_DEFAULT_MOVES(CSTNodeInputIterator)
@@ -184,7 +184,7 @@ public:
     CIE_DEFINE_CLASS_DEFAULT_COPIES(CSTNodeInputIterator)
 
     value_type operator*() const noexcept
-    {return TNode(_i_parent);}
+    {return TNode(_iParent);}
 
     Ref<CSTNodeInputIterator> operator++() noexcept
     {return *this;}
@@ -193,7 +193,7 @@ public:
     {return CSTNodeInputIterator(*this);}
 
     friend CSTNodeInputIterator operator+(CSTNodeInputIterator lhs, difference_type)
-    {return CSTNodeInputIterator(lhs._i_parent);}
+    {return CSTNodeInputIterator(lhs._iParent);}
 
     friend Bool operator<(CSTNodeInputIterator, CSTNodeInputIterator)
     {return false;}
@@ -202,7 +202,7 @@ public:
     {CIE_THROW(NotImplementedException, "") return true;}
 
 private:
-    Index _i_parent;
+    Index _iParent;
 }; // class NodeInputIterator
 
 
@@ -211,34 +211,34 @@ private:
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 inline TIndex
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::split(TIndex i_node)
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::split(TIndex iNode)
 {
-    CIE_CHECK(!this->_nodes[i_node].isNull(), "Split null node at " << i_node)
-    CIE_CHECK(this->_nodes[i_node].isLeaf(), "Resplit a node at " << i_node)
-    const auto i_child = this->insert(detail::CSTNodeInputIterator<Node>(i_node));
-    this->_nodes[i_node].setChildBegin(i_child);
-    return i_child;
+    CIE_CHECK(!this->_nodes[iNode].isNull(), "Split null node at " << iNode)
+    CIE_CHECK(this->_nodes[iNode].isLeaf(), "Resplit a node at " << iNode)
+    const auto iChild = this->insert(detail::CSTNodeInputIterator<Node>(iNode));
+    this->_nodes[iNode].setChildBegin(iChild);
+    return iChild;
 }
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>,TIndex> TPredicate>
 inline void
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::scan(TPredicate&& r_predicate)
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::scan(TPredicate&& rPredicate)
 {
     CIE_BEGIN_EXCEPTION_TRACING
 
-    using Pair = std::pair<TIndex,TIndex>; // <== {i_node, depth}
+    using Pair = std::pair<TIndex,TIndex>; // <== {iNode, depth}
     std::stack<Pair,DynamicArray<Pair>> indexStack;
 
     { // Split root
-        Ref<Node> r_node = this->_nodes[0];
-        if (r_predicate(r_node, 0)) {
-            indexStack.emplace(r_node.isLeaf() ? this->split(0) : r_node.getChildBegin(),
+        Ref<Node> rNode = this->_nodes[0];
+        if (rPredicate(rNode, 0)) {
+            indexStack.emplace(rNode.isLeaf() ? this->split(0) : rNode.getChildBegin(),
                                1);
-        } else if (!r_node.isLeaf()) {
-            this->erase(r_node.getChildBegin());
-            r_node.unsetChildBegin();
+        } else if (!rNode.isLeaf()) {
+            this->erase(rNode.getChildBegin());
+            rNode.unsetChildBegin();
         }
     } // Split root
 
@@ -248,20 +248,20 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::scan(TPredicate&& r_predicate)
         const auto newDepth = pair.second + 1;
 
         // Loop over the siblings of the popped node (including the popped node)
-        for (TIndex i_sibling=0; i_sibling<Node::ChildrenPerNode; ++i_sibling) {
-            const TIndex i_node = pair.first + i_sibling;               // <== ID of the sibling
-            Ref<Node> r_node = this->_nodes[i_node];                    // <== mutable ref to the sibling
-            Ref<const Node> r_constNode = r_node;                       // <== immutable ref to the sibling
+        for (TIndex iSibling=0; iSibling<Node::ChildrenPerNode; ++iSibling) {
+            const TIndex iNode = pair.first + iSibling;               // <== ID of the sibling
+            Ref<Node> rNode = this->_nodes[iNode];                    // <== mutable ref to the sibling
+            Ref<const Node> rConstNode = rNode;                       // <== immutable ref to the sibling
 
             // Recurse a level further if the predicate approves AND the next level is enabled
-            if (r_predicate(r_constNode, newDepth)) {
-                indexStack.emplace(r_node.isLeaf() ? this->split(i_node) : r_node.getChildBegin(),
+            if (rPredicate(rConstNode, newDepth)) {
+                indexStack.emplace(rNode.isLeaf() ? this->split(iNode) : rNode.getChildBegin(),
                                     newDepth);
-            } else if (!r_node.isLeaf()) { // <== recursion denied => erase the children
-                this->erase(r_node.getChildBegin());
-                r_node.unsetChildBegin();
+            } else if (!rNode.isLeaf()) { // <== recursion denied => erase the children
+                this->erase(rNode.getChildBegin());
+                rNode.unsetChildBegin();
             }
-        } // for i_sibling
+        } // for iSibling
     } // while indexStack
 
     CIE_END_EXCEPTION_TRACING
@@ -270,30 +270,30 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::scan(TPredicate&& r_predicate)
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 inline TIndex
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::getIndex(Ref<const Node> r_node) const
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::getIndex(Ref<const Node> rNode) const
 {
     CIE_OUT_OF_RANGE_CHECK(!this->empty())
-    CIE_OUT_OF_RANGE_CHECK(this->_nodes.data() <= &r_node && &r_node < this->_nodes.data() + this->_nodes.size())
-    return std::distance(this->_nodes.data(), &r_node);
+    CIE_OUT_OF_RANGE_CHECK(this->_nodes.data() <= &rNode && &rNode < this->_nodes.data() + this->_nodes.size())
+    return std::distance(this->_nodes.data(), &rNode);
 }
 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 inline std::pair<typename ContiguousSpaceTree<TGeometry,TIndex,TTag>::NodeTrace,unsigned>
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeTrace(Ref<const Node> r_node) const
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeTrace(Ref<const Node> rNode) const
 {
-    auto index = this->getIndex(r_node);
-    Ptr<const Node> p_node = &r_node;
+    auto index = this->getIndex(rNode);
+    Ptr<const Node> pNode = &rNode;
     unsigned bitOffset = 0u; // <== offset for bit operations
     NodeTrace trace = 0;
 
-    while (!p_node->isNull() && index) {
+    while (!pNode->isNull() && index) {
         unsigned localIndex = (index - 1) % Node::ChildrenPerNode;
         trace |= localIndex << bitOffset;
 
         // Get ready for the next iteration
-        p_node = &this->_nodes[p_node->getParentIndex()];
-        index = this->getIndex(*p_node);
+        pNode = &this->_nodes[pNode->getParentIndex()];
+        index = this->getIndex(*pNode);
         bitOffset += Dimension;
     }
 
@@ -304,25 +304,25 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeTrace(Ref<const Node> r_node)
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> r_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> rNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const
 requires concepts::Cube<TGeometry>
 {
     CIE_BEGIN_EXCEPTION_TRACING
 
     std::copy(this->base().begin(),
               this->base().end(),
-              it_baseBegin);
-    auto [trace, bitOffset] = this->getNodeTrace(r_node);
+              itBaseBegin);
+    auto [trace, bitOffset] = this->getNodeTrace(rNode);
 
-    Ref<Coordinate> r_length = *it_lengthBegin;
-    r_length = this->length();
+    Ref<Coordinate> rLength = *itLengthBegin;
+    rLength = this->length();
 
     for (; bitOffset; bitOffset-=Dimension) {
-        r_length /= 2;
-        auto it_base = it_baseBegin;
+        rLength /= 2;
+        auto itBase = itBaseBegin;
         const auto localIndex = trace >> (bitOffset - Dimension); // <== cell index within its parent
-        for (unsigned i_dim=0; i_dim<Dimension; ++i_dim, ++it_base) {
-            *it_base += bool(localIndex & (1 << i_dim)) * r_length;
+        for (unsigned iDim=0; iDim<Dimension; ++iDim, ++itBase) {
+            *itBase += bool(localIndex & (1 << iDim)) * rLength;
         }
     }
 
@@ -333,28 +333,28 @@ requires concepts::Cube<TGeometry>
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
 inline void
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> r_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> rNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const
 requires concepts::Box<TGeometry>
 {
     CIE_BEGIN_EXCEPTION_TRACING
 
     std::copy(this->base().begin(),
               this->base().end(),
-              it_baseBegin);
+              itBaseBegin);
 
     std::copy(this->lengths().begin(),
               this->lengths().end(),
-              it_lengthBegin);
+              itLengthBegin);
 
-    auto [trace, bitOffset] = this->getNodeTrace(r_node);
+    auto [trace, bitOffset] = this->getNodeTrace(rNode);
 
     for (; bitOffset; bitOffset-=Dimension) {
-        auto it_base = it_baseBegin;
-        auto it_length = it_lengthBegin;
+        auto itBase = itBaseBegin;
+        auto itLength = itLengthBegin;
         const auto localIndex = trace >> (bitOffset - Dimension); // <== cell index within its parent
-        for (unsigned i_dim=0; i_dim<Dimension; ++i_dim, ++it_base, ++it_length) {
-            *it_length /= 2;
-            *it_base += bool(localIndex & (1 << i_dim)) * (*it_length);
+        for (unsigned iDim=0; iDim<Dimension; ++iDim, ++itBase, ++itLength) {
+            *itLength /= 2;
+            *itBase += bool(localIndex & (1 << iDim)) * (*itLength);
         }
     }
 

@@ -63,9 +63,9 @@ private:
     CIE_DEFINE_CLASS_DEFAULT_COPIES(CSTNode)
 
 private:
-    TIndex _i_parent;
+    TIndex _iParent;
 
-    TIndex _i_childBegin;
+    TIndex _iChildBegin;
 }; // class CSTNode
 
 
@@ -112,36 +112,36 @@ public:
     CIE_DEFINE_CLASS_DEFAULT_COPIES(ContiguousSpaceTree)
 
     template <class ...TArgs>
-    ContiguousSpaceTree(RightRef<TArgs>... r_arguments);
+    ContiguousSpaceTree(RightRef<TArgs>... rArguments);
 
     /** @brief Get the base and length(s) of the node at the given index.
      *  @tparam TBaseIt: Output iterator of @ref Coordinate types.
      *  @tparam TLengthIt: Output iterator of @ref Coordinate types.
-     *  @param i_node: node index
-     *  @param it_baseBegin: Output iterator pointing to the first component of the base.
+     *  @param iNode: node index
+     *  @param itBaseBegin: Output iterator pointing to the first component of the base.
      *                       The referenced container must have at least size @ref Node::Dimension.
-     *  @param it_lengthBegin: Output iterator pointing to the first component of the lengths.
+     *  @param itLengthBegin: Output iterator pointing to the first component of the lengths.
      *                         If @a TGeometry is a @ref Box, the referenced container must have
      *                         at least size @ref Node::Dimension.
      */
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
-    void getNodeGeometry(TIndex i_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const;
+    void getNodeGeometry(TIndex iNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const;
 
     /** @brief Get the base and length(s) of the node at the given index.
      *  @tparam TBaseIt: Output iterator of @ref Coordinate types.
      *  @tparam TLengthIt: Output iterator of @ref Coordinate types.
-     *  @param r_node: node
-     *  @param it_baseBegin: Output iterator pointing to the first component of the base.
+     *  @param rNode: node
+     *  @param itBaseBegin: Output iterator pointing to the first component of the base.
      *                       The referenced container must have at least size @ref Node::Dimension.
-     *  @param it_lengthBegin: Output iterator pointing to the first component of the lengths.
+     *  @param itLengthBegin: Output iterator pointing to the first component of the lengths.
      *                         If @a TGeometry is a @ref Box, the referenced container must have
      *                         at least size @ref Node::Dimension.
      */
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
-    void getNodeGeometry(Ref<const Node> r_node, TBaseIt it_baseBegin, TLengthIt it_lengthBegin) const;
+    void getNodeGeometry(Ref<const Node> rNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const;
 
     /** @brief Subdivide a node at the given index.
-     *  @param i_node: index of the node to be split.
+     *  @param iNode: index of the node to be split.
      *  @returns The index of the first child.
      *  @throws - If the node at the given index is null.
      *          - [debug] If the node at the given index does not exist.
@@ -149,35 +149,35 @@ public:
      *          - If splitting requires reallocation, which fails.
      *  @note This function is thread-safe iff @ref TreeBase::insert is thread-safe.
      */
-    TIndex split(TIndex i_node);
+    TIndex split(TIndex iNode);
 
     /** @brief Split nodes while a provided predicate says so or until the max depth is reached.
      *  @tparam TPredicate: Unary predicate with the following signature: @code bool(Ref<const Node>, TIndex) @endcode
      *          The first argument refers to the current node, while the second one is its level.
-     *  @param r_predicate: predicate deciding whether a node should be split.
+     *  @param rPredicate: predicate deciding whether a node should be split.
      *  @note Nodes at @a maxDepth are not fed to the predicate.
      */
     template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>,TIndex> TPredicate>
-    void scan(TPredicate&& r_predicate);
+    void scan(TPredicate&& rPredicate);
 
-    TIndex getIndex(Ref<const Node> r_node) const;
+    TIndex getIndex(Ref<const Node> rNode) const;
 
 private:
-    [[nodiscard]] std::pair<NodeTrace,unsigned> getNodeTrace(Ref<const Node> r_node) const;
+    [[nodiscard]] std::pair<NodeTrace,unsigned> getNodeTrace(Ref<const Node> rNode) const;
 
     template <class TPredicate>
-    void scanImpl(TPredicate&& r_predicate, TIndex maxDepth);
+    void scanImpl(TPredicate&& rPredicate, TIndex maxDepth);
 
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
-    void getNodeGeometryImpl(Ref<const Node> r_node,
-                             TBaseIt it_baseBegin,
-                             TLengthIt it_lengthBegin) const
+    void getNodeGeometryImpl(Ref<const Node> rNode,
+                             TBaseIt itBaseBegin,
+                             TLengthIt itLengthBegin) const
     requires concepts::Cube<TGeometry>;
 
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
-    void getNodeGeometryImpl(Ref<const Node> r_node,
-                             TBaseIt it_baseBegin,
-                             TLengthIt it_lengthBegin) const
+    void getNodeGeometryImpl(Ref<const Node> rNode,
+                             TBaseIt itBaseBegin,
+                             TLengthIt itLengthBegin) const
     requires concepts::Box<TGeometry>;
 }; // class ContiguousSpaceTree
 
