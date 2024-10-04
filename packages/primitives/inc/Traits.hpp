@@ -1,13 +1,12 @@
 #ifndef CIE_GEO_TRAITS_HPP
 #define CIE_GEO_TRAITS_HPP
 
+/// @defgroup geo Geometry Module
+
 // --- Utility Includes ---
 #include "packages/types/inc/types.hpp"
 #include "packages/compile_time/packages/concepts/inc/container_concepts.hpp"
 #include "packages/stl_extension/inc/StaticArray.hpp"
-
-// --- STL Includes ---
-#include <array>
 
 
 // ---------------------------------------------------------

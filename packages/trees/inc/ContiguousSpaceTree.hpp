@@ -119,10 +119,10 @@ public:
      *  @tparam TLengthIt: Output iterator of @ref Coordinate types.
      *  @param iNode: node index
      *  @param itBaseBegin: Output iterator pointing to the first component of the base.
-     *                       The referenced container must have at least size @ref Node::Dimension.
+     *                       The referenced container must have at least size @p Node::Dimension.
      *  @param itLengthBegin: Output iterator pointing to the first component of the lengths.
      *                         If @a TGeometry is a @ref Box, the referenced container must have
-     *                         at least size @ref Node::Dimension.
+     *                         at least size @p Node::Dimension.
      */
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
     void getNodeGeometry(TIndex iNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const;
@@ -132,10 +132,10 @@ public:
      *  @tparam TLengthIt: Output iterator of @ref Coordinate types.
      *  @param rNode: node
      *  @param itBaseBegin: Output iterator pointing to the first component of the base.
-     *                       The referenced container must have at least size @ref Node::Dimension.
+     *                       The referenced container must have at least size @p Node::Dimension.
      *  @param itLengthBegin: Output iterator pointing to the first component of the lengths.
      *                         If @a TGeometry is a @ref Box, the referenced container must have
-     *                         at least size @ref Node::Dimension.
+     *                         at least size @p Node::Dimension.
      */
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
     void getNodeGeometry(Ref<const Node> rNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const;

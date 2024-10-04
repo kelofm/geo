@@ -9,17 +9,18 @@
 
 namespace cie::geo {
 
-/*! Evaluate B-Spline curve by summing up basis functions times control points.
- *  @param tCoordinates The parametric coordinates at which the curve shall be evaluated
- *  @param xCoordinates The x coordinates of the control points
- *  @param yCoordinates The y coordinates of the control points
- *  @return A vector of x and a vector of y coordinates with one value for each parametric
- *          coordinate tCoordinates
+/** @brief Evaluate B-Spline curve by summing up basis functions times control points.
+ *  @param tCoordinates Parametric coordinates at which the curve is evaluated.
+ *  @param xCoordinates The @p x coordinates of the control points.
+ *  @param yCoordinates The @p y coordinates of the control points.
+ *  @param knotVector Parametric coordinates of the control points.
+ *  @return A vector of @p x and a vector of @p y coordinates with one value for each parametric
+ *          coordinate tCoordinates.
  */
-StaticArray<std::vector<double>, 2> evaluate2DCurve( const std::vector<double>& tCoordinates,
+StaticArray<std::vector<double>, 2> evaluate2DCurve(const std::vector<double>& tCoordinates,
                                                     const std::vector<double>& xCoordinates,
                                                     const std::vector<double>& yCoordinates,
-                                                    const std::vector<double>& knotVector );
+                                                    const std::vector<double>& knotVector);
 
 //! Identical to evaluate2DCurve, but using De Boor's algorithm.
 StaticArray<std::vector<double>, 2> evaluate2DCurveDeBoor( const std::vector<double>& tCoordinates,

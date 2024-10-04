@@ -9,7 +9,7 @@ namespace cie::geo {
 
 
 /// @brief Compute the arithmetic mean of the input points.
-/// @ingroup geo.
+/// @ingroup geo
 template <concepts::Iterator PointIterator,
           concepts::Iterator ValueIterator>
 class MidPointSplitPolicy : public SplitPolicy<PointIterator,ValueIterator>

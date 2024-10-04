@@ -23,8 +23,6 @@ MACRO_EXPANSION        = YES
 
 INPUT                  = ../readme      \
                          ../packages    \
-                         ../inc         \
-                         ../src         \
                          ../python
 FILE_PATTERNS          = *.h \
                          *.hpp \
@@ -60,7 +58,6 @@ HTML_COLORSTYLE        = AUTO_DARK
 HTML_COLORSTYLE_HUE    = 220
 HTML_COLORSTYLE_SAT    = 100
 HTML_COLORSTYLE_GAMMA  = 80
-HTML_TIMESTAMP         = YES
 GENERATE_TREEVIEW      = YES
 HTML_FORMULA_FORMAT    = svg
 
