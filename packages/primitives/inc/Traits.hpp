@@ -1,7 +1,7 @@
 #ifndef CIE_GEO_TRAITS_HPP
 #define CIE_GEO_TRAITS_HPP
 
-/// @defgroup geo Geometry Module
+/// @defgroup geo Geometry Library
 
 // --- Utility Includes ---
 #include "packages/types/inc/types.hpp"
