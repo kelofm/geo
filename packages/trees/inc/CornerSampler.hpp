@@ -14,7 +14,7 @@
 namespace cie::geo {
 
 
-CIE_DEFINE_INVALID_CLASS_TEMPLATE_TO_SPECIALIZE( CornerSampler )
+CIE_DEFINE_INVALID_CLASS_TEMPLATE_TO_SPECIALIZE(CornerSampler)
 
 
 template <concepts::Cube TPrimitive>

@@ -16,7 +16,7 @@ namespace cie::geo {
 
 template < Size Dimension,
            concepts::Numeric CoordinateType >
-Box<Dimension,CoordinateType>::Box(const Point& r_base, const Point& r_lengths)
+Box<Dimension,CoordinateType>::Box(const Point& r_base, const Point& r_lengths) noexcept
     : _base( r_base ),
       _lengths( r_lengths )
 {
@@ -32,8 +32,8 @@ template < Size Dimension,
 template <class ContainerType1, class ContainerType2>
 requires concepts::Container<ContainerType1,CoordinateType>
          && concepts::Container<ContainerType2,CoordinateType>
-Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
-                                    const ContainerType2& r_lengths  )
+Box<Dimension,CoordinateType>::Box(const ContainerType1& r_base,
+                                   const ContainerType2& r_lengths) noexcept
 {
     CIE_OUT_OF_RANGE_CHECK( r_base.size() == Dimension )
     CIE_OUT_OF_RANGE_CHECK( r_lengths.size() == Dimension )
@@ -54,9 +54,9 @@ Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
 
 template < Size Dimension,
            concepts::Numeric CoordinateType >
-Box<Dimension,CoordinateType>::Box() :
-    Box<Dimension,CoordinateType>( detail::makeOrigin<Dimension,CoordinateType>(),
-                                   detail::makeOrigin<Dimension,CoordinateType>() )
+Box<Dimension,CoordinateType>::Box() noexcept
+    : Box<Dimension,CoordinateType>(detail::makeOrigin<Dimension,CoordinateType>(),
+                                    detail::makeOrigin<Dimension,CoordinateType>() )
 {
 }
 
@@ -81,7 +81,7 @@ Box<Dimension,CoordinateType>::isDegenerate() const
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline const typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::base() const
+Box<Dimension,CoordinateType>::base() const noexcept
 {
     return _base;
 }
@@ -90,7 +90,7 @@ Box<Dimension,CoordinateType>::base() const
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline const typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::lengths() const
+Box<Dimension,CoordinateType>::lengths() const noexcept
 {
     return _lengths;
 }
@@ -99,7 +99,7 @@ Box<Dimension,CoordinateType>::lengths() const
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::base()
+Box<Dimension,CoordinateType>::base() noexcept
 {
     return _base;
 }
@@ -108,7 +108,7 @@ Box<Dimension,CoordinateType>::base()
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::lengths()
+Box<Dimension,CoordinateType>::lengths() noexcept
 {
     return _lengths;
 }
@@ -120,22 +120,14 @@ Box<Dimension,CoordinateType>::lengths()
 namespace boolean {
 
 
-template <Size Dimension, concepts::Numeric CoordinateType>
-Box<Dimension,CoordinateType>::Box( const typename Box<Dimension,CoordinateType>::Point& r_base,
-                                    const typename Box<Dimension,CoordinateType>::Point& r_lengths ) :
-    cie::geo::Box<Dimension,CoordinateType>( r_base, r_lengths )
-{
-}
-
-
 template <  Size Dimension,
             concepts::Numeric CoordinateType   >
 template <class ContainerType1, class ContainerType2>
     requires concepts::Container<ContainerType1,CoordinateType>
                 && concepts::Container<ContainerType2,CoordinateType>
 Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
-                                    const ContainerType2& r_lengths  ) :
-    cie::geo::Box<Dimension,CoordinateType>( r_base, r_lengths )
+                                    const ContainerType2& r_lengths  ) noexcept
+    : cie::geo::Box<Dimension,CoordinateType>(r_base, r_lengths)
 {
 }
 

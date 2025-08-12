@@ -115,33 +115,33 @@ public:
     ContiguousSpaceTree(RightRef<TArgs>... rArguments);
 
     /** @brief Get the base and length(s) of the node at the given index.
-     *  @tparam TBaseIt: Output iterator of @ref Coordinate types.
-     *  @tparam TLengthIt: Output iterator of @ref Coordinate types.
-     *  @param iNode: node index
-     *  @param itBaseBegin: Output iterator pointing to the first component of the base.
-     *                       The referenced container must have at least size @p Node::Dimension.
-     *  @param itLengthBegin: Output iterator pointing to the first component of the lengths.
-     *                         If @a TGeometry is a @ref Box, the referenced container must have
-     *                         at least size @p Node::Dimension.
+     *  @tparam TBaseIt Output iterator of @ref Coordinate types.
+     *  @tparam TLengthIt Output iterator of @ref Coordinate types.
+     *  @param iNode node index
+     *  @param itBaseBegin Output iterator pointing to the first component of the base.
+     *                     The referenced container must have at least size @p Node::Dimension.
+     *  @param itLengthBegin Output iterator pointing to the first component of the lengths.
+     *                       If @p TGeometry is a @ref Box, the referenced container must have
+     *                       at least size @p Node::Dimension.
      */
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
     void getNodeGeometry(TIndex iNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const;
 
     /** @brief Get the base and length(s) of the node at the given index.
-     *  @tparam TBaseIt: Output iterator of @ref Coordinate types.
-     *  @tparam TLengthIt: Output iterator of @ref Coordinate types.
-     *  @param rNode: node
-     *  @param itBaseBegin: Output iterator pointing to the first component of the base.
-     *                       The referenced container must have at least size @p Node::Dimension.
-     *  @param itLengthBegin: Output iterator pointing to the first component of the lengths.
-     *                         If @a TGeometry is a @ref Box, the referenced container must have
-     *                         at least size @p Node::Dimension.
+     *  @tparam TBaseIt Output iterator of @ref Coordinate types.
+     *  @tparam TLengthIt Output iterator of @ref Coordinate types.
+     *  @param rNode node
+     *  @param itBaseBegin Output iterator pointing to the first component of the base.
+     *                     The referenced container must have at least size @p Node::Dimension.
+     *  @param itLengthBegin Output iterator pointing to the first component of the lengths.
+     *                       If @p TGeometry is a @ref Box, the referenced container must have
+     *                       at least size @p Node::Dimension.
      */
     template <concepts::Iterator<Coordinate> TBaseIt, concepts::Iterator<Coordinate> TLengthIt>
     void getNodeGeometry(Ref<const Node> rNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const;
 
     /** @brief Subdivide a node at the given index.
-     *  @param iNode: index of the node to be split.
+     *  @param iNode index of the node to be split.
      *  @returns The index of the first child.
      *  @throws - If the node at the given index is null.
      *          - [debug] If the node at the given index does not exist.
@@ -152,10 +152,10 @@ public:
     TIndex split(TIndex iNode);
 
     /** @brief Split nodes while a provided predicate says so or until the max depth is reached.
-     *  @tparam TPredicate: Unary predicate with the following signature: @code bool(Ref<const Node>, TIndex) @endcode
-     *          The first argument refers to the current node, while the second one is its level.
-     *  @param rPredicate: predicate deciding whether a node should be split.
-     *  @note Nodes at @a maxDepth are not fed to the predicate.
+     *  @tparam TPredicate Unary predicate with the following signature: @code bool(Ref<const Node>, TIndex) @endcode
+     *                     The first argument refers to the current node, while the second one is its level.
+     *  @param rPredicate predicate deciding whether a node should be split.
+     *  @note Nodes at @p maxDepth are not fed to the predicate.
      */
     template <concepts::CallableWith<Ref<const detail::CSTNode<TGeometry::Dimension,TIndex>>,TIndex> TPredicate>
     void scan(TPredicate&& rPredicate);

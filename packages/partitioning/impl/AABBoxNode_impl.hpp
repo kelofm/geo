@@ -1,5 +1,7 @@
-#ifndef CIE_GEO_PARTITIONING_AABBOX_NODE_IMPL_HPP
-#define CIE_GEO_PARTITIONING_AABBOX_NODE_IMPL_HPP
+#pragma once
+
+// help the language server
+#include "packages/partitioning/inc/AABBoxNode.hpp"
 
 // --- Utility Includes ---
 #include "packages/macros/inc/exceptions.hpp"
@@ -13,181 +15,131 @@
 namespace cie::geo {
 
 
-template <concepts::BoxBoundable ObjectType>
-AABBoxNode<ObjectType>::AABBoxNode( const typename AABBoxNode<ObjectType>::Point& r_base,
-                                    const typename AABBoxNode<ObjectType>::Point& r_lengths,
-                                    typename AABBoxNode<ObjectType>::self_ptr p_parent ) :
-    AABBoxNode<ObjectType>::CellBase( r_base, r_lengths ),
-    AABBoxNode<ObjectType>::TreeBase(),
-    _containedObjects(),
-    _intersectedObjects(),
-    _p_parent( p_parent )
+template <concepts::BoxBoundable TObject>
+AABBoxNode<TObject>::AABBoxNode(const Point& rBase,
+                                const Point& rLenghts,
+                                AABBoxNode* pParent) noexcept
+    : AABBoxNode<TObject>::CellBase(rBase, rLenghts),
+      AABBoxNode<TObject>::TreeBase(),
+      _containedObjects(),
+      _intersectedObjects(),
+      _pParent(pParent)
 {
-    CIE_BEGIN_EXCEPTION_TRACING
-
-    if ( auto p_tmp = _p_parent.lock() )
-        this->_level = p_tmp->_level + 1;
+    if (_pParent)
+        this->_level = _pParent->_level + 1;
     else
         this->_level = 0;
-
-    CIE_END_EXCEPTION_TRACING
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-AABBoxNode<ObjectType>::AABBoxNode() :
-    AABBoxNode<ObjectType>( detail::makeOrigin<ObjectType::bounding_box::Dimension,typename ObjectType::bounding_box::Coordinate>(),
-                            detail::makeOrigin<ObjectType::bounding_box::Dimension,typename ObjectType::bounding_box::Coordinate>(),
-                            typename AABBoxNode<ObjectType>::self_ptr() )
+template <concepts::BoxBoundable TObject>
+AABBoxNode<TObject>::AABBoxNode() noexcept
+    : AABBoxNode<TObject>(detail::makeOrigin<TObject::BoundingBox::Dimension,typename TObject::BoundingBox::Coordinate>(),
+                          detail::makeOrigin<TObject::BoundingBox::Dimension,typename TObject::BoundingBox::Coordinate>(),
+                          nullptr)
 {
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-void
-AABBoxNode<ObjectType>::addObject( typename AABBoxNode<ObjectType>::object_ptr p_object )
+template <concepts::BoxBoundable TObject>
+void AABBoxNode<TObject>::insert(Ptr<ObjectType> pObject)
 {
-    auto nodeVisitFunction = [&p_object]( AABBoxNode<ObjectType>* p_node ) -> bool
-    {
-        CIE_BEGIN_EXCEPTION_TRACING
-
-        if ( auto p_tmp = p_object.lock() )
-        {
-            if ( p_node->contains( boundingBox(*p_tmp) ) )
-                p_node->_containedObjects.push_back( p_object );
-            else if ( p_node->intersects( boundingBox(*p_tmp) ) )
-                p_node->_intersectedObjects.push_back( p_object );
-        }
-
-        return true;
-
-        CIE_END_EXCEPTION_TRACING
-    };
-
-    this->visit( nodeVisitFunction );
-}
-
-
-template <concepts::BoxBoundable ObjectType>
-void
-AABBoxNode<ObjectType>::eraseExpired()
-{
-    auto nodeVisitFunction = []( AABBoxNode<ObjectType>* p_node ) -> bool
-    {
-        std::erase_if( p_node->_containedObjects,
-                       []( const auto& rp_object ) -> bool { return rp_object.expired(); } );
-        std::erase_if( p_node->_intersectedObjects,
-                       []( const auto& rp_object ) -> bool { return rp_object.expired(); } );
+    auto nodeVisitFunction = [&pObject](AABBoxNode* pNode) -> bool {
+        if (pNode->contains(boundingBox(*pObject)))
+            pNode->_containedObjects.push_back(pObject);
+        else if (pNode->intersects(boundingBox(*pObject)))
+            pNode->_intersectedObjects.push_back(pObject);
+        else
+            return false;
         return true;
     };
+
+    this->visit(nodeVisitFunction);
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-void
-AABBoxNode<ObjectType>::shrink()
+template <concepts::BoxBoundable TObject>
+void AABBoxNode<TObject>::shrink()
 {
-    auto nodeVisitFunction = []( AABBoxNode<ObjectType>* p_node ) -> bool
-    {
-        CIE_BEGIN_EXCEPTION_TRACING
-
-        if ( p_node->_containedObjects.empty() && p_node->_intersectedObjects.empty() )
-        {
-            std::fill( p_node->_lengths.begin(),
-                       p_node->_lengths.end(),
-                       0 );
+    auto nodeVisitFunction = [](AABBoxNode* pNode) -> bool {
+        if (pNode->_containedObjects.empty() && pNode->_intersectedObjects.empty()) {
+            std::fill(pNode->_lengths.begin(),
+                      pNode->_lengths.end(),
+                      0);
             return true;
         }
 
-        typename AABBoxNode<ObjectType>::Point minPoint;
-        utils::resize( minPoint, AABBoxNode<ObjectType>::Dimension );
-        std::fill( minPoint.begin(),
-                   minPoint.end(),
-                   std::numeric_limits<typename AABBoxNode<ObjectType>::Coordinate>().max() );
+        typename AABBoxNode::Point minPoint;
+        utils::resize(minPoint, AABBoxNode::Dimension);
+        std::fill(minPoint.begin(),
+                  minPoint.end(),
+                  std::numeric_limits<typename AABBoxNode::Coordinate>().max());
 
-        typename AABBoxNode<ObjectType>::Point maxPoint;
-        utils::resize( maxPoint, AABBoxNode<ObjectType>::Dimension );
-        std::fill( maxPoint.begin(),
-                   maxPoint.end(),
-                   std::numeric_limits<typename AABBoxNode<ObjectType>::Coordinate>().min() );
+        typename AABBoxNode::Point maxPoint;
+        utils::resize(maxPoint, AABBoxNode::Dimension);
+        std::fill(maxPoint.begin(),
+                  maxPoint.end(),
+                  std::numeric_limits<typename AABBoxNode::Coordinate>().min());
 
-        for ( auto& rp_object : p_node->_containedObjects )
-        {
-            if ( auto p_tmp = rp_object.lock() )
-            {
-                const auto& r_box = boundingBox(*p_tmp);
+        for (auto pObject : pNode->_containedObjects) {
+            if (pObject) {
+                const auto& r_box = boundingBox(*pObject);
 
-                for ( Size dim=0; dim<AABBoxNode<ObjectType>::Dimension; ++dim )
-                {
+                for (Size dim=0; dim<AABBoxNode::Dimension; ++dim) {
                     auto boxMax = r_box.base()[dim] + r_box.lengths()[dim];
 
-                    if ( r_box.base()[dim] < minPoint[dim] )
+                    if (r_box.base()[dim] < minPoint[dim])
                         minPoint[dim] = r_box.base()[dim];
 
-                    if ( maxPoint[dim] < boxMax )
+                    if (maxPoint[dim] < boxMax)
                         maxPoint[dim] = boxMax;
                 } // for dim
-            } // lock object
+            }
         } // for object in objects
 
-        for ( Size dim=0; dim<AABBoxNode<ObjectType>::Dimension; ++dim )
-        {
-            p_node->_base[dim]    = minPoint[dim];
-            p_node->_lengths[dim] = maxPoint[dim] - minPoint[dim];
+        for (Size dim=0; dim<AABBoxNode::Dimension; ++dim) {
+            pNode->_base[dim]    = minPoint[dim];
+            pNode->_lengths[dim] = maxPoint[dim] - minPoint[dim];
         }
 
         return true;
-
-        CIE_END_EXCEPTION_TRACING
     };
 
-    this->visit( nodeVisitFunction );
+    this->visit(nodeVisitFunction);
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-typename AABBoxNode<ObjectType>::self_ptr
-AABBoxNode<ObjectType>::find( const typename AABBoxNode<ObjectType>::object_ptr p_object )
+template <concepts::BoxBoundable TObject>
+AABBoxNode<TObject>* AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
 {
-    if ( p_object.expired() )
-        CIE_THROW( Exception, "Attempt to find expired object in box tree" )
+    AABBoxNode* pContainingNode = nullptr;
 
-    auto p_objectInternal = p_object.lock();
-
-    typename AABBoxNode<ObjectType>::self_ptr p_containingNode;
-
-    auto nodeVisitFunction = [&p_objectInternal,&p_containingNode]( AABBoxNode<ObjectType>* p_node ) -> bool
-    {
+    auto nodeVisitFunction = [&pObject, &pContainingNode](AABBoxNode* pNode) -> bool {
         CIE_BEGIN_EXCEPTION_TRACING
 
         bool hasObject = false;
 
-        if ( std::find( p_node->_containedObjects.begin(),
-                        p_node->_containedObjects.end(),
-                        p_objectInternal )
-             != p_node->_containedObjects.end() )
-        { hasObject = true; }
-
-        else if ( std::find( p_node->_intersectedObjects.begin(),
-                             p_node->_intersectedObjects.end(),
-                             p_objectInternal )
-             != p_node->_intersectedObjects.end() )
+        if (std::find(pNode->_containedObjects.begin(),
+                      pNode->_containedObjects.end(),
+                      pObject)
+            != pNode->_containedObjects.end()) {
+            hasObject = true;
+        } else if (std::find(pNode->_intersectedObjects.begin(),
+                             pNode->_intersectedObjects.end(),
+                             pObject)
+                   != pNode->_intersectedObjects.end())
         { hasObject = true; }
 
         // Terminate search if the node does not have the object
         // Continue the search if the node has the object but is not a leaf
         // Terminate the search if the node has the object and is a leaf
-        if ( hasObject )
-        {
-            if ( p_node->isLeaf() )
-            {
-                p_containingNode = p_node->weak_from_this();
+        if (hasObject) {
+            if (pNode->isLeaf()) {
+                pContainingNode = pNode;
                 return false;
-            }
-            else
+            } else
                 return true;
-        }
-        else
+        } else
             return false;
 
         CIE_END_EXCEPTION_TRACING
@@ -195,108 +147,129 @@ AABBoxNode<ObjectType>::find( const typename AABBoxNode<ObjectType>::object_ptr 
 
     // Check whether the object is in this box,
     // if it is not, there is no point in searching subcells
-    if ( nodeVisitFunction(this) )
-        this->visit( nodeVisitFunction );
+    if (nodeVisitFunction(this))
+        this->visit(nodeVisitFunction);
 
-    return p_containingNode;
+    return pContainingNode;
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-bool
-AABBoxNode<ObjectType>::partition( Size maxObjects,
-                                   Size maxLevel )
+template <concepts::BoxBoundable TObject>
+Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ref<const Point> rPoint)
+{
+    AABBoxNode* pContainingNode = nullptr;
+
+    auto nodeVisitFunction = [&rPoint, &pContainingNode, this](AABBoxNode* pNode) -> bool {
+        // Terminate search if the node does not have the object
+        // Continue the search if the node has the object but is not a leaf
+        // Terminate the search if the node has the object and is a leaf
+        if (this->at(rPoint)) {
+            if (pNode->isLeaf()) {
+                pContainingNode = pNode;
+                return false;
+            } else
+                return true;
+        } else
+            return false;
+    };
+
+    // Check whether the object is in this box,
+    // if it is not, there is no point in searching subcells
+    if (nodeVisitFunction(this))
+        this->visit(nodeVisitFunction);
+
+    return pContainingNode;
+}
+
+
+template <concepts::BoxBoundable TObject>
+bool AABBoxNode<TObject>::partition(Size maxObjects,
+                                    Size maxLevel)
 {
     bool objectLimitReached = true;
 
-    auto nodeVisitFunction = [=,&objectLimitReached]( AABBoxNode<ObjectType>* p_node ) -> bool
-    {
-        if ( auto p_parent = p_node->parent().lock() ) // Not root
-        {
-            p_node->_containedObjects.clear();
-            p_node->_intersectedObjects.clear();
+    auto nodeVisitFunction = [=,&objectLimitReached](AABBoxNode* pNode) -> bool {
+        if (auto pParent = pNode->parent()) {
+            // Not root
+            pNode->_containedObjects.clear();
+            pNode->_intersectedObjects.clear();
 
             // Pull contained objects from the parent
-            for ( auto& rp_object : p_parent->_containedObjects )
-                if ( auto p_tmp = rp_object.lock() )
-                    if ( p_node->contains( boundingBox(*p_tmp) ) )
-                        p_node->_containedObjects.push_back( rp_object );
+            for (auto pObject : pParent->_containedObjects)
+                if (pObject)
+                    if (pNode->contains(boundingBox(*pObject)))
+                        pNode->_containedObjects.push_back(pObject);
 
             // Pull intersected objects from the parent
-            for ( auto& rp_object : p_parent->_intersectedObjects )
-                if ( auto p_tmp = rp_object.lock() )
-                    if ( p_node->contains( boundingBox(*p_tmp) ) )
-                        p_node->_intersectedObjects.push_back( rp_object );
+            for (auto pObject : pParent->_intersectedObjects)
+                if (pObject)
+                    if (pNode->contains(boundingBox(*pObject)))
+                        pNode->_intersectedObjects.push_back(pObject);
         }
 
         // Stop partitioning if the number of objects is within the limit
-        if ( p_node->_containedObjects.size() + p_node->_intersectedObjects.size() <= maxObjects )
+        if (pNode->_containedObjects.size() + pNode->_intersectedObjects.size() <= maxObjects)
             return true;
 
         // Stop partitioning if maximum recursion limit is reached
-        if ( maxLevel <= p_node->_level )
-        {
+        if (maxLevel <= pNode->_level) {
             objectLimitReached = false;
             return true;
         }
 
         // Get node midpoint to use as splitting point
-        typename AABBoxNode<ObjectType>::Point midPoint;
-        utils::resize( midPoint, AABBoxNode<ObjectType>::Dimension );
-        for ( Size dim=0; dim<AABBoxNode<ObjectType>::Dimension; ++dim )
-            midPoint[dim] = p_node->_base[dim] + p_node->_lengths[dim] / 2.0;
+        typename AABBoxNode<TObject>::Point midPoint;
+        utils::resize(midPoint, AABBoxNode<TObject>::Dimension);
+        for (Size dim=0; dim<AABBoxNode<TObject>::Dimension; ++dim)
+            midPoint[dim] = pNode->_base[dim] + pNode->_lengths[dim] / 2.0;
 
         // Subdivide node
-        auto cellConstructors = p_node->split( midPoint );
+        auto cellConstructors = pNode->split(midPoint);
 
-        for ( const auto& r_cellConstructor : cellConstructors )
-            p_node->_children.emplace_back( new AABBoxNode<ObjectType>(
-                std::get<0>( r_cellConstructor ),   // base
-                std::get<1>( r_cellConstructor ),   // lengths
-                p_node->weak_from_this()            // parent
-            ));
+        for (const auto& r_cellConstructor : cellConstructors)
+            pNode->_children.emplace_back(new AABBoxNode<TObject>(
+                std::get<0>(r_cellConstructor),   // base
+                std::get<1>(r_cellConstructor),   // lengths
+                pNode                               // parent
+           ));
 
         return true;
     };
 
-    this->visit( nodeVisitFunction );
+    this->visit(nodeVisitFunction);
 
     return objectLimitReached;
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-inline const typename AABBoxNode<ObjectType>::object_ptr_container&
-AABBoxNode<ObjectType>::containedObjects() const
+template <concepts::BoxBoundable TObject>
+const typename AABBoxNode<TObject>::ObjectPtrContainer&
+AABBoxNode<TObject>::containedObjects() const noexcept
 {
     return this->_containedObjects;
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-inline const typename AABBoxNode<ObjectType>::object_ptr_container&
-AABBoxNode<ObjectType>::intersectedObjects() const
+template <concepts::BoxBoundable TObject>
+const typename AABBoxNode<TObject>::ObjectPtrContainer&
+AABBoxNode<TObject>::intersectedObjects() const noexcept
 {
     return this->_intersectedObjects;
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-inline typename AABBoxNode<ObjectType>::self_ptr
-AABBoxNode<ObjectType>::parent()
+template <concepts::BoxBoundable TObject>
+AABBoxNode<TObject>* AABBoxNode<TObject>::parent()
 {
-    return this->_p_parent;
+    return this->_pParent;
 }
 
 
-template <concepts::BoxBoundable ObjectType>
-inline const typename AABBoxNode<ObjectType>::self_ptr&
-AABBoxNode<ObjectType>::parent() const
+template <concepts::BoxBoundable TObject>
+const AABBoxNode<TObject>* AABBoxNode<TObject>::parent() const
 {
-    return this->_p_parent;
+    return this->_pParent;
 }
 
 
 } // namespace cie::geo
-
-#endif

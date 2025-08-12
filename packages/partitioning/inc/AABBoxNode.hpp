@@ -1,5 +1,4 @@
-#ifndef CIE_GEO_PARTITIONING_AABBOX_NODE_HPP
-#define CIE_GEO_PARTITIONING_AABBOX_NODE_HPP
+#pragma once
 
 // --- Utility Includes ---
 #include "packages/trees/inc/abstree.hpp"
@@ -11,7 +10,6 @@
 
 // --- STL Includes ---
 #include <deque>
-#include <memory>
 
 
 namespace cie::geo {
@@ -24,39 +22,34 @@ namespace cie::geo {
 template <concepts::BoxBoundable TObject>
 class AABBoxNode :
     public Cell<AABBox<GetTraits<TObject>::Type::Dimension,typename GetTraits<TObject>::Type::Coordinate>>,
-    public utils::AbsTree<AABBoxNode<TObject>,std::deque,std::shared_ptr<AABBoxNode<TObject>>>,
+    public utils::AbsTree<AABBoxNode<TObject>,std::deque,Ptr<AABBoxNode<TObject>>>,
     public std::enable_shared_from_this<AABBoxNode<TObject>>
 {
 private:
     using CellBase = Cell<AABBox<GetTraits<TObject>::Type::Dimension,typename GetTraits<TObject>::Type::Coordinate>>;
 
-    using TreeBase = utils::AbsTree<AABBoxNode<TObject>,std::deque,std::shared_ptr<AABBoxNode<TObject>>>;
+    using TreeBase = utils::AbsTree<AABBoxNode<TObject>,std::deque,Ptr<AABBoxNode<TObject>>>;
 
 public:
-    using object_type          = TObject;
+    using ObjectType = TObject;
 
-    using object_ptr           = std::weak_ptr<object_type>;
+    using ObjectPtrContainer = std::deque<Ptr<ObjectType>>;
 
-    using object_ptr_container = std::deque<object_ptr>;
-
-    using self_ptr             = std::weak_ptr<AABBoxNode<TObject>>;
+    using typename CellBase::Point;
 
 public:
-    AABBoxNode(const typename AABBoxNode<TObject>::Point& r_base,
-               const typename AABBoxNode<TObject>::Point& r_lengths,
-               self_ptr p_parent);
+    AABBoxNode(const Point& rBase,
+               const Point& rLengths,
+               AABBoxNode* pParent) noexcept;
 
-    AABBoxNode();
+    AABBoxNode() noexcept;
 
     /**
      * If the object fits in this box, add it to the list of objects
      * and send it down the tree
-     * @param p_object pointer to object to add
+     * @param pObject pointer to object to add
      */
-    void addObject(object_ptr p_object);
-
-    /// Recursively erase expired objects from storage
-    void eraseExpired();
+    void insert(Ptr<ObjectType> pObject);
 
     /**
      * Readjust box to fit all remaining objects,
@@ -65,12 +58,18 @@ public:
     void shrink();
 
     /**
-     * @brief Find highest level node that contains the query object
-     * @param p_object pointer to query object
-     * @return pointer to node containing the query object, or a default
-     * constructed pointer if the search fails
+     * @brief Find the highest level node that contains the input object.
+     * @param pObject Pointer to input object.
+     * @return Pointer to node containing the input object, or nullptr
+     *         if the search fails.
      */
-    self_ptr find(const object_ptr p_object);
+    AABBoxNode* find(Ptr<ObjectType> pObject);
+
+    /// @brief Find the highest level node that contains the input point.
+    /// @param rPoint Pointer to input point.
+    /// @return Pointer to node containing the input point, or nullptr
+    ///         if the search fails.
+    Ptr<AABBoxNode> find(Ref<const Point> rPoint);
 
     /**
      * Subdivide nodes until the number of contained objects reaches or
@@ -80,37 +79,35 @@ public:
      * @return false if recursion depth is reached before the object limit
      */
     bool partition(Size maxObjects,
-                    Size maxLevel);
+                   Size maxLevel);
 
-    /// Access to contained objects
-    const object_ptr_container& containedObjects() const;
+    /// Access to contained objects.
+    const ObjectPtrContainer& containedObjects() const noexcept;
 
-    /// Access to intersected objects
-    const object_ptr_container& intersectedObjects() const;
+    /// Access to intersected objects.
+    const ObjectPtrContainer& intersectedObjects() const noexcept;
 
     /**
      * Parent node access
      * @return default constructed pointer if this node is the root
      */
-    self_ptr parent();
+    AABBoxNode* parent();
 
     /**
      * Parent node access
      * @return reference to default constructed pointer if this node is the root
      */
-    const self_ptr& parent() const;
+    const AABBoxNode* parent() const;
 
 protected:
-    object_ptr_container _containedObjects;
+    ObjectPtrContainer _containedObjects;
 
-    object_ptr_container _intersectedObjects;
+    ObjectPtrContainer _intersectedObjects;
 
-    self_ptr             _p_parent;
+    AABBoxNode* _pParent;
 };
 
 
 } // namespace cie::geo
 
 #include "packages/partitioning/impl/AABBoxNode_impl.hpp"
-
-#endif

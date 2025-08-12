@@ -8,46 +8,29 @@
 namespace cie::geo {
 
 
-template < Size Dimension,
-           concepts::Numeric CoordinateType = Double >
-class AABBox : public boolean::Box<Dimension,CoordinateType>
+/// @ingroup geo
+template <Size Dimension, concepts::Numeric TCoordinate = Double>
+class AABBox : public boolean::Box<Dimension,TCoordinate>
 {
 public:
-    explicit AABBox();
-    AABBox( const typename AABBox<Dimension,CoordinateType>::Point& r_base,
-            const typename AABBox<Dimension,CoordinateType>::Point& r_lengths );
+    using boolean::Box<Dimension,TCoordinate>::Box;
 
-    AABBox( const AABBox<Dimension,CoordinateType>& r_rhs ) = default;
-    AABBox<Dimension,CoordinateType>& operator=( const AABBox<Dimension,CoordinateType>& r_rhs ) = default;
+    using boolean::Box<Dimension,TCoordinate>::operator=;
 
-    /**
-     * Check whether this box fully encloses the argument box:
-     * all points of the argument must lie inside
-     * 
-     * \param r_box query box
-     * 
-     * \note closed boundaries
-     */
-    Bool contains( const AABBox<Dimension,CoordinateType>& r_box ) const;
+    /// @brief Check whether this box fully encloses the input box.
+    /// @param rBox Query box.
+    /// @note Closed boundaries.
+    Bool contains(const AABBox& rBox) const noexcept;
 
-    /**
-     * Check for intersections with the argument box:
-     * argument must have at least one point inside and one outside
-     * 
-     * \param r_box query box
-     * 
-     * \note touching does not qualify as intersection
-     */
-    Bool intersects( const AABBox<Dimension,CoordinateType>& r_box ) const;
+    /// @brief Check for intersections with the argument box.
+    /// @param rBox Query box.
+    /// @note Touching does not constitute an intersection.
+    Bool intersects(const AABBox& rBox) const noexcept;
 
-    /**
-     * Expand box to include target box
-     * 
-     * \param r_box target box
-     * 
-     * \note target box will not necessarily be "contained"
-     */
-    void include( const AABBox<Dimension,CoordinateType>& r_box );
+    /// @brief Expand the box to include target box.
+    /// @param rBox Target box.
+    /// @note The target box will not necessarily be "contained".
+    void include(const AABBox& rBox) noexcept;
 };
 
 
