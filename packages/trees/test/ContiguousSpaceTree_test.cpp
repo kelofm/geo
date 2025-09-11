@@ -19,7 +19,7 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
     CIE_TEST_CASE_INIT("ContiguousSpaceTree")
 
     using Coordinate = Float;
-    using Index = uint16_t;
+    using Index = std::uint16_t;
 
     {
         CIE_TEST_CASE_INIT("Square")
@@ -29,11 +29,11 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
         CIE_TEST_CHECK_NOTHROW(Tree(Tree::Point {-1, -1}, 2));
         Tree tree(Tree::Point {0, 0}, 1);
 
-        const auto unitCircle = [&tree](Ref<const Tree::Node> r_node, Index level) {
+        const auto unitCircle = [&tree](Ref<const Tree::Node> rNode, Index level) {
             if (3 < level) return false;
             Tree::Point base;
             Tree::Coordinate edge;
-            tree.getNodeGeometry(r_node, base.begin(), &edge);
+            tree.getNodeGeometry(rNode, base.begin(), &edge);
             bool isInside = (linalg::norm2(base) < 1);
             base[0] += edge;
             if (isInside != (linalg::norm2(base) < 1)) return true;
@@ -65,11 +65,11 @@ CIE_TEST_CASE("ContiguousSpaceTree", "[trees]")
         Tree tree(Tree::Point {-1.0f, 0.0f},
                   Tree::Point { 2.0f - std::numeric_limits<Coordinate>::epsilon(), 1.0f});
 
-        const auto unitCircle = [&tree](Ref<const Tree::Node> r_node, Index level) {
+        const auto unitCircle = [&tree](Ref<const Tree::Node> rNode, Index level) {
             if (3 < level) return false;
             Tree::Point base;
             Tree::Point edges;
-            tree.getNodeGeometry(r_node, base.begin(), edges.begin());
+            tree.getNodeGeometry(rNode, base.begin(), edges.begin());
             bool isInside = (linalg::norm2(base) < 1);
             base[0] += edges[0];
             if (isInside != (linalg::norm2(base) < 1)) return true;

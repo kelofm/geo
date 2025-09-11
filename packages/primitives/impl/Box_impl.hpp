@@ -1,5 +1,7 @@
-#ifndef CIE_GEO_PRIMITIVES_BOX_IMPL_HPP
-#define CIE_GEO_PRIMITIVES_BOX_IMPL_HPP
+#pragma once
+
+// help the language server
+#include "packages/primitives/inc/Box.hpp"
 
 // --- Utility Includes ---
 #include "packages/macros/inc/checks.hpp"
@@ -132,20 +134,21 @@ Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
 }
 
 
-template < Size Dimension,
-           concepts::Numeric CoordinateType >
-Bool
-Box<Dimension,CoordinateType>::at( const typename Box<Dimension,CoordinateType>::Point& r_point ) const
+template <Size Dimension, concepts::Numeric CoordinateType>
+Bool Box<Dimension,CoordinateType>::at(const typename Box<Dimension,CoordinateType>::Point& rPoint) const
 {
-    CIE_OUT_OF_RANGE_CHECK( r_point.size() == Dimension )
+    auto itBase     = this->_base.begin();
+    auto itLength   = this->_lengths.begin();
+    auto itPointEnd = rPoint.end();
 
-    auto it_base        = this->_base.begin();
-    auto it_length      = this->_lengths.begin();
-    auto it_pointEnd    = r_point.end();
-
-    for (auto it_point=r_point.begin(); it_point!=it_pointEnd; ++it_point,++it_base,++it_length)
-        if ( (*it_point<(*it_base)) == (*it_point<(*it_base + (*it_length))) )
+    for (auto itPoint=rPoint.begin(); itPoint!=itPointEnd; ++itPoint,++itBase,++itLength) {
+        const bool lessThanLowerBound = (*itPoint) < (*itBase);
+        const bool lessThanUpperBound = (*itPoint) < ((*itBase) + (*itLength));
+        if (lessThanLowerBound == lessThanUpperBound) {
             return false;
+        }
+    }
+
     return true;
 }
 
@@ -154,6 +157,3 @@ Box<Dimension,CoordinateType>::at( const typename Box<Dimension,CoordinateType>:
 
 
 } // namespace cie::geo
-
-
-#endif

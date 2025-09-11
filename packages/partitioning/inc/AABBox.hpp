@@ -1,5 +1,4 @@
-#ifndef CIE_GEO_PARTITIONING_AABBOX_HPP
-#define CIE_GEO_PARTITIONING_AABBOX_HPP
+#pragma once
 
 // --- Internal Includes ---
 #include "packages/primitives/inc/Box.hpp"
@@ -37,5 +36,3 @@ public:
 } // namespace cie::geo
 
 #include "packages/partitioning/impl/AABBox_impl.hpp"
-
-#endif

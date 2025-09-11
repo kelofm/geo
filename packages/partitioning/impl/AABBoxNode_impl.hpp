@@ -44,7 +44,7 @@ AABBoxNode<TObject>::AABBoxNode() noexcept
 template <concepts::BoxBoundable TObject>
 void AABBoxNode<TObject>::insert(Ptr<ObjectType> pObject)
 {
-    auto nodeVisitFunction = [&pObject](AABBoxNode* pNode) -> bool {
+    auto visitor = [&pObject](AABBoxNode* pNode) -> bool {
         if (pNode->contains(boundingBox(*pObject)))
             pNode->_containedObjects.push_back(pObject);
         else if (pNode->intersects(boundingBox(*pObject)))
@@ -54,14 +54,14 @@ void AABBoxNode<TObject>::insert(Ptr<ObjectType> pObject)
         return true;
     };
 
-    this->visit(nodeVisitFunction);
+    this->visit(visitor);
 }
 
 
 template <concepts::BoxBoundable TObject>
 void AABBoxNode<TObject>::shrink()
 {
-    auto nodeVisitFunction = [](AABBoxNode* pNode) -> bool {
+    auto visitor = [](AABBoxNode* pNode) -> bool {
         if (pNode->_containedObjects.empty() && pNode->_intersectedObjects.empty()) {
             std::fill(pNode->_lengths.begin(),
                       pNode->_lengths.end(),
@@ -105,7 +105,7 @@ void AABBoxNode<TObject>::shrink()
         return true;
     };
 
-    this->visit(nodeVisitFunction);
+    this->visit(visitor);
 }
 
 
@@ -114,7 +114,7 @@ AABBoxNode<TObject>* AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
 {
     AABBoxNode* pContainingNode = nullptr;
 
-    auto nodeVisitFunction = [&pObject, &pContainingNode](AABBoxNode* pNode) -> bool {
+    auto visitor = [&pObject, &pContainingNode](AABBoxNode* pNode) -> bool {
         CIE_BEGIN_EXCEPTION_TRACING
 
         bool hasObject = false;
@@ -147,8 +147,8 @@ AABBoxNode<TObject>* AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
 
     // Check whether the object is in this box,
     // if it is not, there is no point in searching subcells
-    if (nodeVisitFunction(this))
-        this->visit(nodeVisitFunction);
+    if (visitor(this))
+        this->visit(visitor);
 
     return pContainingNode;
 }
@@ -159,25 +159,20 @@ Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ref<const Point> rPoint)
 {
     AABBoxNode* pContainingNode = nullptr;
 
-    auto nodeVisitFunction = [&rPoint, &pContainingNode, this](AABBoxNode* pNode) -> bool {
-        // Terminate search if the node does not have the object
-        // Continue the search if the node has the object but is not a leaf
-        // Terminate the search if the node has the object and is a leaf
-        if (this->at(rPoint)) {
+    const auto visitor = [&rPoint, &pContainingNode](AABBoxNode* pNode) noexcept -> bool {
+        if (pNode->at(rPoint)) {
             if (pNode->isLeaf()) {
                 pContainingNode = pNode;
                 return false;
-            } else
+            } else {
                 return true;
-        } else
+            }
+        } else {
             return false;
+        }
     };
 
-    // Check whether the object is in this box,
-    // if it is not, there is no point in searching subcells
-    if (nodeVisitFunction(this))
-        this->visit(nodeVisitFunction);
-
+    this->visit(visitor);
     return pContainingNode;
 }
 
@@ -188,7 +183,7 @@ bool AABBoxNode<TObject>::partition(Size maxObjects,
 {
     bool objectLimitReached = true;
 
-    auto nodeVisitFunction = [=,&objectLimitReached](AABBoxNode* pNode) -> bool {
+    auto visitor = [=,&objectLimitReached](AABBoxNode* pNode) -> bool {
         if (auto pParent = pNode->parent()) {
             // Not root
             pNode->_containedObjects.clear();
@@ -196,14 +191,18 @@ bool AABBoxNode<TObject>::partition(Size maxObjects,
 
             // Pull contained objects from the parent
             for (auto pObject : pParent->_containedObjects)
-                if (pObject)
-                    if (pNode->contains(boundingBox(*pObject)))
+                if (pObject) {
+                    if (pNode->contains(boundingBox(*pObject))) {
                         pNode->_containedObjects.push_back(pObject);
+                    } else if (pNode->intersects(boundingBox(*pObject))) {
+                        pNode->_intersectedObjects.push_back(pObject);
+                    }
+                }
 
             // Pull intersected objects from the parent
             for (auto pObject : pParent->_intersectedObjects)
                 if (pObject)
-                    if (pNode->contains(boundingBox(*pObject)))
+                    if (pNode->intersects(boundingBox(*pObject)))
                         pNode->_intersectedObjects.push_back(pObject);
         }
 
@@ -236,7 +235,7 @@ bool AABBoxNode<TObject>::partition(Size maxObjects,
         return true;
     };
 
-    this->visit(nodeVisitFunction);
+    this->visit(visitor);
 
     return objectLimitReached;
 }
