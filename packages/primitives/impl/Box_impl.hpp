@@ -143,7 +143,7 @@ Bool Box<Dimension,CoordinateType>::at(const typename Box<Dimension,CoordinateTy
 
     for (auto itPoint=rPoint.begin(); itPoint!=itPointEnd; ++itPoint,++itBase,++itLength) {
         const bool lessThanLowerBound = (*itPoint) < (*itBase);
-        const bool lessThanUpperBound = (*itPoint) <= ((*itBase) + (*itLength));
+        const bool lessThanUpperBound = (*itPoint) < ((*itBase) + (*itLength));
         if (lessThanLowerBound == lessThanUpperBound) {
             return false;
         }
