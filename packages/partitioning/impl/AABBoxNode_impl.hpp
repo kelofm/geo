@@ -115,20 +115,14 @@ AABBoxNode<TObject>* AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
     AABBoxNode* pContainingNode = nullptr;
 
     auto visitor = [&pObject, &pContainingNode](AABBoxNode* pNode) -> bool {
-        CIE_BEGIN_EXCEPTION_TRACING
-
-        bool hasObject = false;
-
-        if (std::find(pNode->_containedObjects.begin(),
-                      pNode->_containedObjects.end(),
-                      pObject)
-            != pNode->_containedObjects.end()) {
-            hasObject = true;
-        } else if (std::find(pNode->_intersectedObjects.begin(),
-                             pNode->_intersectedObjects.end(),
-                             pObject)
-                   != pNode->_intersectedObjects.end())
-        { hasObject = true; }
+        bool hasObject =    std::find(pNode->_containedObjects.begin(),
+                                      pNode->_containedObjects.end(),
+                                      pObject)
+                            != pNode->_containedObjects.end()
+                         || std::find(pNode->_intersectedObjects.begin(),
+                                      pNode->_intersectedObjects.end(),
+                                      pObject)
+                            != pNode->_intersectedObjects.end();
 
         // Terminate search if the node does not have the object
         // Continue the search if the node has the object but is not a leaf
@@ -141,8 +135,6 @@ AABBoxNode<TObject>* AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
                 return true;
         } else
             return false;
-
-        CIE_END_EXCEPTION_TRACING
     };
 
     // Check whether the object is in this box,
@@ -158,11 +150,16 @@ template <concepts::BoxBoundable TObject>
 Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ref<const Point> rPoint)
 {
     AABBoxNode* pContainingNode = nullptr;
+    Size containingLevel = 0ul;
 
-    const auto visitor = [&rPoint, &pContainingNode](AABBoxNode* pNode) noexcept -> bool {
+    const auto visitor = [&rPoint, &pContainingNode, &containingLevel](AABBoxNode* pNode) noexcept -> bool {
         if (pNode->at(rPoint)) {
-            if (pNode->isLeaf()) {
+            if (containingLevel <= pNode->level()) {
                 pContainingNode = pNode;
+                containingLevel = pNode->level();
+            }
+
+            if (pNode->isLeaf()) {
                 return false;
             } else {
                 return true;
