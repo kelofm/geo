@@ -128,14 +128,14 @@ CIE_TEST_CASE( "boolean::Cube", "[primitives]" )
 
     DoubleArray<dimension> point = {0.0, 0.0};
 
-    CIE_TEST_REQUIRE_NOTHROW( cube.evaluate(point) );
-    CIE_TEST_CHECK( cube.evaluate(point) == false );
+    CIE_TEST_REQUIRE_NOTHROW( cube.at(point) );
+    CIE_TEST_CHECK( cube.at(point) == false );
 
-    CIE_TEST_REQUIRE_NOTHROW( cube.evaluate(cube.base()) );
-    CIE_TEST_CHECK( cube.evaluate( cube.base() ) == true );
+    CIE_TEST_REQUIRE_NOTHROW( cube.at(cube.base()) );
+    CIE_TEST_CHECK( cube.at( cube.base() ) == true );
 
-    CIE_TEST_REQUIRE_NOTHROW( cube.evaluate( DoubleVector({11.999,21.999}) ) );
-    CIE_TEST_CHECK( cube.evaluate( DoubleVector({11.999,21.999}) ) == true );
+    CIE_TEST_REQUIRE_NOTHROW( cube.at( Cube<dimension,Double>::Point {11.999,21.999} ) );
+    CIE_TEST_CHECK( cube.at( Cube<dimension,Double>::Point {11.999,21.999} ) == true );
 }
 
 
@@ -148,14 +148,14 @@ CIE_TEST_CASE( "boolean::Box", "[primitives]" )
                                DoubleArray<dimension>({1.0,2.0}) );
     DoubleArray<dimension> point = {0.0, 0.0};
 
-    CIE_TEST_REQUIRE_NOTHROW( box.evaluate(point) );
-    CIE_TEST_CHECK( box.evaluate(point) == false );
+    CIE_TEST_REQUIRE_NOTHROW( box.at(point) );
+    CIE_TEST_CHECK( box.at(point) == false );
 
-    CIE_TEST_REQUIRE_NOTHROW( box.evaluate(box.base()) );
-    CIE_TEST_CHECK( box.evaluate( box.base() ) == true );
+    CIE_TEST_REQUIRE_NOTHROW( box.at(box.base()) );
+    CIE_TEST_CHECK( box.at( box.base() ) == true );
 
-    CIE_TEST_REQUIRE_NOTHROW( box.evaluate( DoubleVector({10.999999,21.99999}) ) );
-    CIE_TEST_CHECK( box.evaluate( DoubleVector({10.999999,21.99999}) ) == true );
+    CIE_TEST_REQUIRE_NOTHROW( box.at( Cube<dimension,Double>::Point {10.999999,21.99999} ) );
+    CIE_TEST_CHECK( box.at( Cube<dimension,Double>::Point {10.999999,21.99999} ) == true );
 }
 
 

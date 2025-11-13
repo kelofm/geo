@@ -6,6 +6,7 @@
 // --- Utility Includes ---
 #include "packages/macros/inc/checks.hpp"
 #include "packages/macros/inc/exceptions.hpp"
+#include "packages/maths/inc/OuterProduct.hpp" // OuterProduct
 
 // --- STL Includes ---
 #include <algorithm>
@@ -113,6 +114,24 @@ inline typename Box<Dimension,CoordinateType>::Point&
 Box<Dimension,CoordinateType>::lengths() noexcept
 {
     return _lengths;
+}
+
+
+template <Size Dimension, concepts::Numeric TCoordinate>
+void Box<Dimension,TCoordinate>::makeCorners(std::span<Point,intPow(2,Dimension)> corners) const noexcept
+{
+    StaticArray<std::uint8_t,Dimension> state;
+    std::fill_n(state.data(), Dimension, static_cast<std::uint8_t>(0));
+    auto itCorner = corners.data();
+
+    do {
+        for (unsigned iDimension=0u; iDimension<Dimension; ++iDimension) {
+            (*itCorner)[iDimension] = _base[iDimension];
+            if (state[iDimension]) (*itCorner)[iDimension] += _lengths[iDimension];
+        } // for iDimension in range(Dimension)
+
+        ++itCorner;
+    } while (::cie::maths::OuterProduct<Dimension>::next(2u, state.data()));
 }
 
 

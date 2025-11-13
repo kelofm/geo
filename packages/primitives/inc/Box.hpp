@@ -1,15 +1,16 @@
-#ifndef CIE_GEO_PRIMITIVES_BOX_HPP
-#define CIE_GEO_PRIMITIVES_BOX_HPP
+#pragma once
 
 // --- Utility Includes ---
 #include "packages/compile_time/packages/concepts/inc/container_concepts.hpp"
+#include "packages/maths/inc/power.hpp"
 
-// --- Internal Includes ---
+// --- GEO Includes ---
 #include "packages/primitives/inc/Primitive.hpp"
 #include "packages/primitives/inc/concepts.hpp"
 
 // --- STL Includes ---
 #include <tuple>
+#include <span>
 
 
 namespace cie::geo {
@@ -49,6 +50,8 @@ public:
 
     typename Box<Dimension,TCoordinate>::Point& lengths() noexcept;
 
+    void makeCorners(std::span<Point,intPow(2,Dimension)> corners) const noexcept;
+
 protected:
     typename Box<Dimension,TCoordinate>::Point _base;
 
@@ -74,7 +77,6 @@ public:
     Box(const ContainerType1& rBase,
         const ContainerType2& rLengths) noexcept;
 
-protected:
     virtual Bool at(const typename Box<Dimension,TCoordinate>::Point& rPoint) const override;
 };
 
@@ -102,5 +104,3 @@ concept Box
 
 
 #include "packages/primitives/impl/Box_impl.hpp"
-
-#endif

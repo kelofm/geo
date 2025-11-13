@@ -65,7 +65,6 @@ public:
     Ellipsoid( Ellipsoid<Dimension,CoordinateType>&& r_rhs ) = default;
     Ellipsoid<Dimension,CoordinateType>& operator=( const Ellipsoid<Dimension,CoordinateType>& r_rhs ) = default;
 
-protected:
     virtual Bool at( const Point& r_point ) const override;
 };
 
