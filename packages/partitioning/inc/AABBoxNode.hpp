@@ -2,14 +2,16 @@
 
 // --- Utility Includes ---
 #include "packages/trees/inc/abstree.hpp"
+#include "packages/stl_extension/inc/DynamicArray.hpp"
 
-// --- Internal Includes ---
+// --- GEO Includes ---
 #include "packages/partitioning/inc/AABBox.hpp"
 #include "packages/partitioning/inc/boundingBox.hpp"
 #include "packages/trees/inc/Cell.hpp"
+#include "packages/primitives/inc/Object.hpp"
 
 // --- STL Includes ---
-#include <deque>
+#include <span> // std::span
 
 
 namespace cie::geo {
@@ -33,8 +35,6 @@ private:
 public:
     using ObjectType = TObject;
 
-    using ObjectPtrContainer = std::deque<Ptr<ObjectType>>;
-
     using typename CellBase::Point;
 
 public:
@@ -45,15 +45,13 @@ public:
     AABBoxNode() noexcept;
 
     /**
-     * If the object fits in this box, add it to the list of objects
-     * and send it down the tree
+     * If the object fits in this box, add it to the list of objects.
      * @param pObject pointer to object to add
      */
-    void insert(Ptr<ObjectType> pObject);
+    bool insert(Ptr<ObjectType> pObject);
 
     /**
-     * Readjust box to fit all remaining objects,
-     * then adjust children sizes as well
+     * Readjust box to fit all children and remaining objects.
      */
     void shrink();
 
@@ -63,7 +61,7 @@ public:
      * @return Pointer to node containing the input object, or nullptr
      *         if the search fails.
      */
-    AABBoxNode* find(Ptr<ObjectType> pObject);
+    Ptr<AABBoxNode> find(Ptr<ObjectType> pObject);
 
     /// @brief Find the highest level node that contains the input point.
     /// @param rPoint Pointer to input point.
@@ -72,37 +70,52 @@ public:
     Ptr<AABBoxNode> find(Ref<const Point> rPoint);
 
     /**
-     * Subdivide nodes until the number of contained objects reaches or
-     * drops below the specified limit, or the recursion depth is reached
+     * @details Subdivide nodes until the number of contained objects reaches or
+     *          drops below the specified limit, or the maximum recursion depth is reached.
      * @param maxObjects maximum number of objects in leaf nodes (termination criterion)
      * @param maxLevel recursion depth limit (termination constraint)
      * @return false if recursion depth is reached before the object limit
      */
-    bool partition(Size maxObjects,
-                   Size maxLevel);
+    bool partition(Size maxObjects, Size maxLevel);
 
-    /// Access to contained objects.
-    const ObjectPtrContainer& containedObjects() const noexcept;
+    /// @brief Access to contained objects.
+    std::span<Ptr<const TObject>> contained() const noexcept;
 
-    /// Access to intersected objects.
-    const ObjectPtrContainer& intersectedObjects() const noexcept;
+    /// @brief Mutable access to contained objects.
+    std::span<Ptr<TObject>> contained() noexcept;
+
+    /// @brief Access to intersected objects.
+    std::span<Ptr<const TObject>> intersected() const noexcept;
+
+    /// @brief Mutable access to intersected objects.
+    std::span<Ptr<TObject>> intersected() noexcept;
 
     /**
      * Parent node access
      * @return default constructed pointer if this node is the root
      */
-    AABBoxNode* parent();
+    Ptr<AABBoxNode> parent() noexcept;
 
     /**
      * Parent node access
      * @return reference to default constructed pointer if this node is the root
      */
-    const AABBoxNode* parent() const;
+    Ptr<const AABBoxNode> parent() const noexcept;
 
-protected:
-    ObjectPtrContainer _containedObjects;
+private:
+    bool nonRecursiveInsert(Ptr<TObject> pObject);
 
-    ObjectPtrContainer _intersectedObjects;
+    static void insertObject(Ptr<TObject> pObject, Ref<DynamicArray<Ptr<TObject>>> rSet);
+
+    static DynamicArray<Ptr<TObject>>::iterator findObject(Ptr<TObject> pObject, Ref<DynamicArray<Ptr<TObject>>> rSet);
+
+    static DynamicArray<Ptr<TObject>>::const_iterator findObject(Ptr<TObject> pObject, Ref<const DynamicArray<Ptr<TObject>>> rSet);
+
+    static void eraseObjects(std::span<Ptr<TObject>> objects, Ref<DynamicArray<Ptr<TObject>>> rSet);
+
+    DynamicArray<Ptr<TObject>> _containedObjects;
+
+    DynamicArray<Ptr<TObject>> _intersectedObjects;
 
     AABBoxNode* _pParent;
 };

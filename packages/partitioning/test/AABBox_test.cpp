@@ -17,18 +17,29 @@ CIE_TEST_CASE("AABBox", "[partitioning]")
 
         using BoundingBox = AABBox<2,Double>;
 
+        // Define reference box.
+        //    y
+        //
+        //    ^
+        //    |
+        // (0, 1)    (1, 1)
+        //    + ------ +
+        //    |        |
+        //    |   RB   |
+        //    |        |
+        //    + ------ + ---- >  x
+        // (0, 0)    (1, 0)
+        const BoundingBox refBox(BoundingBox::Point {0.0, 0.0},
+                                 BoundingBox::Point {1.0, 1.0});
         BoundingBox testBox;
-        BoundingBox refBox(
-            BoundingBox::Point {0.0, 0.0},
-            BoundingBox::Point {1.0, 1.0}
-        );
+
 
         // Define lengths
-        BoundingBox::Coordinate L  = 1.0;
-        BoundingBox::Coordinate L2 = 2.0 * L;
-        BoundingBox::Coordinate hL = L / 2.0;
-        BoundingBox::Coordinate l  = 0.1;
-        BoundingBox::Coordinate hl = l / 2.0;
+        constexpr BoundingBox::Coordinate L  = 1.0;
+        constexpr BoundingBox::Coordinate L2 = 2.0 * L;
+        constexpr BoundingBox::Coordinate hL = L / 2.0;
+        constexpr BoundingBox::Coordinate l  = 0.1;
+        constexpr BoundingBox::Coordinate hl = l / 2.0;
 
         /* --- y: negative side --- */
 
@@ -243,21 +254,23 @@ CIE_TEST_CASE("AABBox", "[partitioning]")
 
         /* --- Box expansion --- */
 
+        auto expandedRefBox = refBox;
+
         testBox = BoundingBox(BoundingBox::Point { 0.0, 0.0 },
                               BoundingBox::Point { L2, l });
-        CIE_TEST_CHECK_NOTHROW(refBox.include(testBox));
-        CIE_TEST_CHECK(refBox.base()[0] == Approx(0.0));
-        CIE_TEST_CHECK(refBox.base()[1] == Approx(0.0));
-        CIE_TEST_CHECK(refBox.lengths()[0] == Approx(L2));
-        CIE_TEST_CHECK(refBox.lengths()[1] == Approx(L));
+        CIE_TEST_CHECK_NOTHROW(expandedRefBox.include(testBox));
+        CIE_TEST_CHECK(expandedRefBox.base()[0] == Approx(0.0));
+        CIE_TEST_CHECK(expandedRefBox.base()[1] == Approx(0.0));
+        CIE_TEST_CHECK(expandedRefBox.lengths()[0] == Approx(L2));
+        CIE_TEST_CHECK(expandedRefBox.lengths()[1] == Approx(L));
 
         testBox = BoundingBox(BoundingBox::Point { -l, -hl },
                               BoundingBox::Point { l, L2 });
-        CIE_TEST_CHECK_NOTHROW(refBox.include(testBox));
-        CIE_TEST_CHECK(refBox.base()[0] == Approx(-l));
-        CIE_TEST_CHECK(refBox.base()[1] == Approx(-hl));
-        CIE_TEST_CHECK(refBox.lengths()[0] == Approx(L2 + l));
-        CIE_TEST_CHECK(refBox.lengths()[1] == Approx(L2));
+        CIE_TEST_CHECK_NOTHROW(expandedRefBox.include(testBox));
+        CIE_TEST_CHECK(expandedRefBox.base()[0] == Approx(-l));
+        CIE_TEST_CHECK(expandedRefBox.base()[1] == Approx(-hl));
+        CIE_TEST_CHECK(expandedRefBox.lengths()[0] == Approx(L2 + l));
+        CIE_TEST_CHECK(expandedRefBox.lengths()[1] == Approx(L2));
     }
 }
 

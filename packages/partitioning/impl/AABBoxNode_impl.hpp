@@ -10,6 +10,7 @@
 // --- STL Includes ---
 #include <algorithm>
 #include <limits>
+#include <packages/trees/inc/abstree.hpp>
 
 
 namespace cie::geo {
@@ -42,19 +43,18 @@ AABBoxNode<TObject>::AABBoxNode() noexcept
 
 
 template <concepts::BoxBoundable TObject>
-void AABBoxNode<TObject>::insert(Ptr<ObjectType> pObject)
+bool AABBoxNode<TObject>::insert(Ptr<ObjectType> pObject)
 {
-    auto visitor = [&pObject](AABBoxNode* pNode) -> bool {
-        if (pNode->contains(boundingBox(*pObject)))
-            pNode->_containedObjects.push_back(pObject);
-        else if (pNode->intersects(boundingBox(*pObject)))
-            pNode->_intersectedObjects.push_back(pObject);
-        else
-            return false;
-        return true;
-    };
+    if (this->parent()) CIE_THROW(Exception, "attempt to insert object into non-root node")
+    if (!this->children().empty()) CIE_THROW(Exception, "attempt to insert into non-empty root node")
 
-    this->visit(visitor);
+    if (this->contains(boundingBox(*pObject)))
+        AABBoxNode::insertObject(pObject, this->_containedObjects);
+    else if (this->intersects(boundingBox(*pObject)))
+        AABBoxNode::insertObject(pObject, this->_intersectedObjects);
+    else
+        return false;
+    return true;
 }
 
 
@@ -62,84 +62,57 @@ template <concepts::BoxBoundable TObject>
 void AABBoxNode<TObject>::shrink()
 {
     auto visitor = [](AABBoxNode* pNode) -> bool {
-        if (pNode->_containedObjects.empty() && pNode->_intersectedObjects.empty()) {
-            std::fill(pNode->_lengths.begin(),
-                      pNode->_lengths.end(),
-                      0);
-            return true;
-        }
+        std::fill_n(pNode->lengths().data(), AABBoxNode::Dimension, static_cast<typename TObject::Coordinate>(0));
 
-        typename AABBoxNode::Point minPoint;
-        utils::resize(minPoint, AABBoxNode::Dimension);
-        std::fill(minPoint.begin(),
-                  minPoint.end(),
-                  std::numeric_limits<typename AABBoxNode::Coordinate>().max());
-
-        typename AABBoxNode::Point maxPoint;
-        utils::resize(maxPoint, AABBoxNode::Dimension);
-        std::fill(maxPoint.begin(),
-                  maxPoint.end(),
-                  std::numeric_limits<typename AABBoxNode::Coordinate>().min());
+        for (const auto& pChild : pNode->children()) {
+            for (unsigned iDimension=0u; iDimension<AABBoxNode::Dimension; ++iDimension) {
+                pNode->include(*pChild);
+            } // for iDimension in range(Dimension)
+        } // for pChild in pNode->children()
 
         for (auto pObject : pNode->_containedObjects) {
-            if (pObject) {
-                const auto& r_box = boundingBox(*pObject);
-
-                for (Size dim=0; dim<AABBoxNode::Dimension; ++dim) {
-                    auto boxMax = r_box.base()[dim] + r_box.lengths()[dim];
-
-                    if (r_box.base()[dim] < minPoint[dim])
-                        minPoint[dim] = r_box.base()[dim];
-
-                    if (maxPoint[dim] < boxMax)
-                        maxPoint[dim] = boxMax;
-                } // for dim
-            }
+            pNode->include(boundingBox(*pObject));
         } // for object in objects
-
-        for (Size dim=0; dim<AABBoxNode::Dimension; ++dim) {
-            pNode->_base[dim]    = minPoint[dim];
-            pNode->_lengths[dim] = maxPoint[dim] - minPoint[dim];
-        }
 
         return true;
     };
 
-    this->visit(visitor);
+    this->visit(visitor, utils::VisitStrategy::ReverseBreadthFirst);
 }
 
 
 template <concepts::BoxBoundable TObject>
-AABBoxNode<TObject>* AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
+Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
 {
     AABBoxNode* pContainingNode = nullptr;
 
     auto visitor = [&pObject, &pContainingNode](AABBoxNode* pNode) -> bool {
-        bool hasObject =    std::find(pNode->_containedObjects.begin(),
-                                      pNode->_containedObjects.end(),
-                                      pObject)
-                            != pNode->_containedObjects.end()
-                         || std::find(pNode->_intersectedObjects.begin(),
-                                      pNode->_intersectedObjects.end(),
-                                      pObject)
-                            != pNode->_intersectedObjects.end();
+        const auto& rBoundingBox = boundingBox(*pObject);
 
-        // Terminate search if the node does not have the object
-        // Continue the search if the node has the object but is not a leaf
-        // Terminate the search if the node has the object and is a leaf
-        if (hasObject) {
-            if (pNode->isLeaf()) {
+        if (pNode->contains(rBoundingBox)) {
+            const bool found = AABBoxNode::findObject(pObject, pNode->_containedObjects) != pNode->_containedObjects.end();
+            if (found) {
                 pContainingNode = pNode;
                 return false;
-            } else
+            } else {
                 return true;
-        } else
+            }
+        } else if (pNode->intersects(rBoundingBox)) {
+            const bool found = AABBoxNode::findObject(pObject, pNode->_intersectedObjects) != pNode->_intersectedObjects.end();
+            if (found) {
+                pContainingNode = pNode;
+                return false;
+            } else {
+                return true;
+            }
+        } else {
             return false;
+        }
     };
 
     // Check whether the object is in this box,
     // if it is not, there is no point in searching subcells
-    if (visitor(this))
+    //if (visitor(this))
         this->visit(visitor);
 
     return pContainingNode;
@@ -157,6 +130,22 @@ Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ref<const Point> rPoint)
             if (containingLevel <= pNode->level()) {
                 pContainingNode = pNode;
                 containingLevel = pNode->level();
+            }
+
+            if constexpr (concepts::SamplableGeometry<TObject>) {
+                for (const auto& rpObject : pNode->contained()) {
+                    if (rpObject->at(rPoint)) {
+                        pContainingNode = pNode;
+                        return false;
+                    }
+                }
+
+                for (const auto& rpObject : pNode->intersected()) {
+                    if (rpObject->at(rPoint)) {
+                        pContainingNode = pNode;
+                        return false;
+                    }
+                }
             }
 
             if (pNode->isLeaf()) {
@@ -186,22 +175,45 @@ bool AABBoxNode<TObject>::partition(Size maxObjects,
             pNode->_containedObjects.clear();
             pNode->_intersectedObjects.clear();
 
+            constexpr unsigned Dimension = AABBoxNode::Dimension;
+            StaticArray<typename AABBoxNode::Point,intPow(2, Dimension)> corners;
+            pNode->makeCorners(std::span<Point,intPow(2,Dimension)> {corners.data(), corners.size()});
+
             // Pull contained objects from the parent
-            for (auto pObject : pParent->_containedObjects)
+            for (auto pObject : pParent->contained()) {
                 if (pObject) {
                     if (pNode->contains(boundingBox(*pObject))) {
-                        pNode->_containedObjects.push_back(pObject);
+                        AABBoxNode::insertObject(pObject, pNode->_containedObjects);
                     } else if (pNode->intersects(boundingBox(*pObject))) {
-                        pNode->_intersectedObjects.push_back(pObject);
-                    }
-                }
 
-            // Pull intersected objects from the parent
-            for (auto pObject : pParent->_intersectedObjects)
-                if (pObject)
-                    if (pNode->intersects(boundingBox(*pObject)))
-                        pNode->_intersectedObjects.push_back(pObject);
-        }
+                        // If the stored objects can be sampled, make sure that
+                        // they're only intersected if the objects themselves are
+                        // intersected, not only their bounding boxes.
+                        bool intersected = false;
+                        if constexpr (concepts::SamplableGeometry<TObject>) {
+                            bool hasCornerInside = false, hasCornerOutside = false;
+                            for (const auto& rCorner : corners) {
+                                if (pObject->at(rCorner)) hasCornerInside = true;
+                                else hasCornerOutside = true;
+                                if (hasCornerInside && hasCornerOutside) {
+                                    intersected = true;
+                                    break;
+                                }
+                            } // for rCorner in corners
+                        } /*if SamplableGeometry<TObject>*/ {
+                            intersected = true;
+                        }
+
+                        if (intersected)
+                            AABBoxNode::insertObject(pObject, pNode->_intersectedObjects);
+                    }
+                } // if pObject
+            } // for pObject in pParent->contained()
+
+            // Remove inserted objects from the parent.
+            AABBoxNode::eraseObjects(pNode->_containedObjects, pParent->_containedObjects);
+            AABBoxNode::eraseObjects(pNode->_intersectedObjects, pParent->_intersectedObjects);
+        } // if pParent
 
         // Stop partitioning if the number of objects is within the limit
         if (pNode->_containedObjects.size() + pNode->_intersectedObjects.size() <= maxObjects)
@@ -222,10 +234,10 @@ bool AABBoxNode<TObject>::partition(Size maxObjects,
         // Subdivide node
         auto cellConstructors = pNode->split(midPoint);
 
-        for (const auto& r_cellConstructor : cellConstructors)
+        for (const auto& rCellConstructor : cellConstructors)
             pNode->_children.emplace_back(new AABBoxNode<TObject>(
-                std::get<0>(r_cellConstructor),   // base
-                std::get<1>(r_cellConstructor),   // lengths
+                std::get<0>(rCellConstructor),      // base
+                std::get<1>(rCellConstructor),      // lengths
                 pNode                               // parent
            ));
 
@@ -239,32 +251,101 @@ bool AABBoxNode<TObject>::partition(Size maxObjects,
 
 
 template <concepts::BoxBoundable TObject>
-const typename AABBoxNode<TObject>::ObjectPtrContainer&
-AABBoxNode<TObject>::containedObjects() const noexcept
+std::span<Ptr<const TObject>>
+AABBoxNode<TObject>::contained() const noexcept
 {
     return this->_containedObjects;
 }
 
 
 template <concepts::BoxBoundable TObject>
-const typename AABBoxNode<TObject>::ObjectPtrContainer&
-AABBoxNode<TObject>::intersectedObjects() const noexcept
+std::span<Ptr<TObject>>
+AABBoxNode<TObject>::contained() noexcept
+{
+    return this->_containedObjects;
+}
+
+
+template <concepts::BoxBoundable TObject>
+std::span<Ptr<const TObject>>
+AABBoxNode<TObject>::intersected() const noexcept
 {
     return this->_intersectedObjects;
 }
 
 
 template <concepts::BoxBoundable TObject>
-AABBoxNode<TObject>* AABBoxNode<TObject>::parent()
+std::span<Ptr<TObject>>
+AABBoxNode<TObject>::intersected() noexcept
+{
+    return this->_intersectedObjects;
+}
+
+
+template <concepts::BoxBoundable TObject>
+Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::parent() noexcept
 {
     return this->_pParent;
 }
 
 
 template <concepts::BoxBoundable TObject>
-const AABBoxNode<TObject>* AABBoxNode<TObject>::parent() const
+Ptr<const AABBoxNode<TObject>> AABBoxNode<TObject>::parent() const noexcept
 {
     return this->_pParent;
+}
+
+
+template <concepts::BoxBoundable TObject>
+void
+AABBoxNode<TObject>::insertObject(Ptr<TObject> pObject, Ref<DynamicArray<Ptr<TObject>>> rSet)
+{
+    rSet.insert(std::upper_bound(rSet.begin(),
+                                 rSet.end(),
+                                 pObject,
+                                 std::less<Ptr<TObject>>()),
+                pObject);
+}
+
+
+template <concepts::BoxBoundable TObject>
+DynamicArray<Ptr<TObject>>::iterator
+AABBoxNode<TObject>::findObject(Ptr<TObject> pObject, Ref<DynamicArray<Ptr<TObject>>> rSet)
+{
+    auto it = std::lower_bound(rSet.begin(),
+                               rSet.end(),
+                               pObject,
+                               std::less<Ptr<TObject>>());
+    return (it != rSet.end() && (*it) == pObject) ? it : rSet.end();
+}
+
+
+template <concepts::BoxBoundable TObject>
+DynamicArray<Ptr<TObject>>::const_iterator
+AABBoxNode<TObject>::findObject(Ptr<TObject> pObject, Ref<const DynamicArray<Ptr<TObject>>> rSet)
+{
+    auto it = std::lower_bound(rSet.begin(),
+                               rSet.end(),
+                               pObject,
+                               std::less<Ptr<TObject>>());
+    return (it != rSet.end() && (*it) == pObject) ? it : rSet.end();
+}
+
+
+template <concepts::BoxBoundable TObject>
+void
+AABBoxNode<TObject>::eraseObjects(std::span<Ptr<TObject>> objects, Ref<DynamicArray<Ptr<TObject>>> rSet)
+{
+    DynamicArray<Ptr<TObject>> difference;
+    difference.reserve(rSet.size());
+
+    std::set_difference(rSet.begin(),
+                        rSet.end(),
+                        objects.begin(),
+                        objects.end(),
+                        std::back_inserter(difference));
+
+    rSet = std::move(difference);
 }
 
 

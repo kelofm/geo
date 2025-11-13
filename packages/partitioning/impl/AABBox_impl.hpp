@@ -28,10 +28,10 @@ Bool AABBox<Dimension,TCoordinate>::contains(const AABBox& rBox) const noexcept
 template <Size Dimension, concepts::Numeric TCoordinate>
 Bool AABBox<Dimension,TCoordinate>::intersects(const AABBox& rBox) const noexcept
 {
-    if (rBox.contains(*this)) return true;
+    //if (rBox.contains(*this)) return true;
 
-    std::uint8_t cornersOutside = 0u;
-    std::uint8_t cornersInside = 0u;
+    bool hasCornerOutside = false;
+    bool hasCornerInside = false;
 
     // At least one point outside and one inside
     StaticArray<std::uint8_t,Dimension> samplePointState;
@@ -43,14 +43,16 @@ Bool AABBox<Dimension,TCoordinate>::intersects(const AABBox& rBox) const noexcep
             if (samplePointState[iDimension]) {
                 corner[iDimension] += rBox.lengths()[iDimension];
             }
-
-            // Check whether the corner is inside or outside the bbox.
-            if (this->at(corner)) ++cornersInside;
-            else ++cornersOutside;
         } // for iDimension in range(Dimension)
+
+        // Check whether the corner is inside or outside the bbox.
+        if (this->at(corner)) hasCornerInside = true;
+        else hasCornerOutside = true;
+
+        if (hasCornerInside && hasCornerOutside) return true;
     } while (cie::maths::OuterProduct<Dimension>::next(2u, samplePointState.data()));
 
-    return cornersOutside && cornersInside;
+    return false;
 }
 
 

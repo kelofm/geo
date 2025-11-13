@@ -64,7 +64,7 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         for (auto& rObject : objects)
             CIE_TEST_CHECK_NOTHROW(root.insert(&rObject));
 
-        CIE_TEST_CHECK( root.containedObjects().size() == numberOfCellsPerDimension*numberOfCellsPerDimension );
+        CIE_TEST_CHECK( root.contained().size() == numberOfCellsPerDimension*numberOfCellsPerDimension );
 
         // Partition
         constexpr Size maxObjects = 3;
@@ -81,7 +81,7 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
             auto nodeVisitFunction = [maxLevel=maxLevel,maxObjects=maxObjects](Node* p_node) -> bool {
                 CIE_TEST_CHECK(p_node->level() <= maxLevel);
                 if (p_node->isLeaf())
-                    CIE_TEST_CHECK( p_node->containedObjects().size() <= maxObjects );
+                    CIE_TEST_CHECK( p_node->contained().size() <= maxObjects );
                 return true;
             };
             CIE_TEST_CHECK_NOTHROW( root.visit(nodeVisitFunction) );
@@ -119,8 +119,8 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         for ( auto& rObject : objects )
             CIE_TEST_CHECK_NOTHROW( root.insert( &rObject ) );
 
-        CIE_TEST_CHECK( root.containedObjects().size() == numberOfObjects );
-        CIE_TEST_CHECK( root.intersectedObjects().size() == 0 );
+        CIE_TEST_CHECK( root.contained().size() == numberOfObjects );
+        CIE_TEST_CHECK( root.intersected().size() == 0 );
 
         // Check partitioning
         constexpr Size maxObjects = 5;
@@ -134,12 +134,12 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         Size objectCounter = 0;
 
         auto nodeVisitFunctor = [&objectCounter, maxLevel=maxLevel, maxObjects=maxObjects]( Node* p_node ) -> bool {
-            CIE_TEST_CHECK( p_node->intersectedObjects().size() == 0 );
+            CIE_TEST_CHECK( p_node->intersected().size() == 0 );
             CIE_TEST_CHECK( p_node->level() <= maxLevel );
             if (p_node->isLeaf()) {
-                Size numberOfContainedObjects = p_node->containedObjects().size();
-                CIE_TEST_CHECK( numberOfContainedObjects <= maxObjects );
-                objectCounter += numberOfContainedObjects;
+                Size numberOfcontained = p_node->contained().size();
+                CIE_TEST_CHECK( numberOfcontained <= maxObjects );
+                objectCounter += numberOfcontained;
             }
             return true;
         };
