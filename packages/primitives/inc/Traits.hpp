@@ -1,5 +1,4 @@
-#ifndef CIE_GEO_TRAITS_HPP
-#define CIE_GEO_TRAITS_HPP
+#pragma once
 
 /// @defgroup geo Geometry Library
 
@@ -101,6 +100,3 @@ using GetTraitsT = typename GetTraits<TObject>::Type;
 
 
 } // namespace cie::geo
-
-
-#endif

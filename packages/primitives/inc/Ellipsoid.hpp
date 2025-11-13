@@ -16,6 +16,7 @@ class Ellipsoid : public AbsPrimitive<Dimension,CoordinateType>
 {
 public:
     using typename AbsPrimitive<Dimension,CoordinateType>::Point;
+
 public:
     Ellipsoid( const Point& r_center,
                const Point& r_radii );
