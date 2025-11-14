@@ -84,9 +84,9 @@ void AABBoxNode<TObject>::shrink()
 template <concepts::BoxBoundable TObject>
 Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
 {
-    AABBoxNode* pContainingNode = nullptr;
+    Ptr<AABBoxNode> pContainingNode = nullptr;
 
-    auto visitor = [&pObject, &pContainingNode](AABBoxNode* pNode) -> bool {
+    auto visitor = [&pObject, &pContainingNode](Ptr<AABBoxNode> pNode) -> bool {
         const auto& rBoundingBox = boundingBox(*pObject);
 
         if (pNode->contains(rBoundingBox)) {
@@ -120,12 +120,94 @@ Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ptr<ObjectType> pObject)
 
 
 template <concepts::BoxBoundable TObject>
-Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ref<const Point> rPoint)
+Ptr<const AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ptr<const ObjectType> pObject) const
 {
-    AABBoxNode* pContainingNode = nullptr;
+    Ptr<const AABBoxNode> pContainingNode = nullptr;
+
+    auto visitor = [&pObject, &pContainingNode](Ptr<const AABBoxNode> pNode) -> bool {
+        const auto& rBoundingBox = boundingBox(*pObject);
+
+        if (pNode->contains(rBoundingBox)) {
+            const bool found = AABBoxNode::findObject(pObject, pNode->_containedObjects) != pNode->_containedObjects.end();
+            if (found) {
+                pContainingNode = pNode;
+                return false;
+            } else {
+                return true;
+            }
+        } else if (pNode->intersects(rBoundingBox)) {
+            const bool found = AABBoxNode::findObject(pObject, pNode->_intersectedObjects) != pNode->_intersectedObjects.end();
+            if (found) {
+                pContainingNode = pNode;
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    };
+
+    // Check whether the object is in this box,
+    // if it is not, there is no point in searching subcells
+    //if (visitor(this))
+        this->visit(visitor);
+
+    return pContainingNode;
+}
+
+
+template <concepts::BoxBoundable TObject>
+Ptr<const AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ref<const Point> rPoint) const
+{
+    Ptr<const AABBoxNode> pContainingNode = nullptr;
     Size containingLevel = 0ul;
 
-    const auto visitor = [&rPoint, &pContainingNode, &containingLevel](AABBoxNode* pNode) noexcept -> bool {
+    const auto visitor = [&rPoint, &pContainingNode, &containingLevel](Ptr<const AABBoxNode> pNode) noexcept -> bool {
+        if (pNode->at(rPoint)) {
+            if (containingLevel <= pNode->level()) {
+                pContainingNode = pNode;
+                containingLevel = pNode->level();
+            }
+
+            if constexpr (concepts::SamplableGeometry<TObject>) {
+                for (const auto& rpObject : pNode->contained()) {
+                    if (rpObject->at(rPoint)) {
+                        pContainingNode = pNode;
+                        return false;
+                    }
+                }
+
+                for (const auto& rpObject : pNode->intersected()) {
+                    if (rpObject->at(rPoint)) {
+                        pContainingNode = pNode;
+                        return false;
+                    }
+                }
+            }
+
+            if (pNode->isLeaf()) {
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    };
+
+    this->visit(visitor);
+    return pContainingNode;
+}
+
+
+template <concepts::BoxBoundable TObject>
+Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::find(Ref<const Point> rPoint)
+{
+    Ptr<AABBoxNode> pContainingNode = nullptr;
+    Size containingLevel = 0ul;
+
+    const auto visitor = [&rPoint, &pContainingNode, &containingLevel](Ptr<AABBoxNode> pNode) noexcept -> bool {
         if (pNode->at(rPoint)) {
             if (containingLevel <= pNode->level()) {
                 pContainingNode = pNode;
@@ -251,10 +333,10 @@ bool AABBoxNode<TObject>::partition(Size maxObjects,
 
 
 template <concepts::BoxBoundable TObject>
-std::span<Ptr<const TObject>>
+std::span<const Ptr<const TObject>>
 AABBoxNode<TObject>::contained() const noexcept
 {
-    return this->_containedObjects;
+    return _containedObjects;
 }
 
 
@@ -262,15 +344,15 @@ template <concepts::BoxBoundable TObject>
 std::span<Ptr<TObject>>
 AABBoxNode<TObject>::contained() noexcept
 {
-    return this->_containedObjects;
+    return _containedObjects;
 }
 
 
 template <concepts::BoxBoundable TObject>
-std::span<Ptr<const TObject>>
+std::span<const Ptr<const TObject>>
 AABBoxNode<TObject>::intersected() const noexcept
 {
-    return this->_intersectedObjects;
+    return _intersectedObjects;
 }
 
 
@@ -278,21 +360,21 @@ template <concepts::BoxBoundable TObject>
 std::span<Ptr<TObject>>
 AABBoxNode<TObject>::intersected() noexcept
 {
-    return this->_intersectedObjects;
+    return _intersectedObjects;
 }
 
 
 template <concepts::BoxBoundable TObject>
 Ptr<AABBoxNode<TObject>> AABBoxNode<TObject>::parent() noexcept
 {
-    return this->_pParent;
+    return _pParent;
 }
 
 
 template <concepts::BoxBoundable TObject>
 Ptr<const AABBoxNode<TObject>> AABBoxNode<TObject>::parent() const noexcept
 {
-    return this->_pParent;
+    return _pParent;
 }
 
 

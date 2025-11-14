@@ -61,7 +61,21 @@ public:
      * @return Pointer to node containing the input object, or nullptr
      *         if the search fails.
      */
+    Ptr<const AABBoxNode> find(Ptr<const ObjectType> pObject) const;
+
+    /**
+     * @brief Find the highest level node that contains the input object.
+     * @param pObject Pointer to input object.
+     * @return Pointer to node containing the input object, or nullptr
+     *         if the search fails.
+     */
     Ptr<AABBoxNode> find(Ptr<ObjectType> pObject);
+
+    /// @brief Find the highest level node that contains the input point.
+    /// @param rPoint Pointer to input point.
+    /// @return Pointer to node containing the input point, or nullptr
+    ///         if the search fails.
+    Ptr<const AABBoxNode> find(Ref<const Point> rPoint) const;
 
     /// @brief Find the highest level node that contains the input point.
     /// @param rPoint Pointer to input point.
@@ -79,13 +93,13 @@ public:
     bool partition(Size maxObjects, Size maxLevel);
 
     /// @brief Access to contained objects.
-    std::span<Ptr<const TObject>> contained() const noexcept;
+    std::span<const Ptr<const TObject>> contained() const noexcept;
 
     /// @brief Mutable access to contained objects.
     std::span<Ptr<TObject>> contained() noexcept;
 
     /// @brief Access to intersected objects.
-    std::span<Ptr<const TObject>> intersected() const noexcept;
+    std::span<const Ptr<const TObject>> intersected() const noexcept;
 
     /// @brief Mutable access to intersected objects.
     std::span<Ptr<TObject>> intersected() noexcept;
