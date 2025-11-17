@@ -12,6 +12,7 @@ print_help() {
     echo "-p                : package after building"
     echo "-t build-type     : build type [Debug, Release, RelWithDebInfo] (default: Release)"
     echo "-b build-dir      : build directory"
+    echo "-c compiler-name  : compiler family [gcc, clang, intel, acpp] (Default: gcc)"
     echo "-i install-dir    : install directory (python site package by default)"
     echo "-o [opts]         : options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly."
 }
@@ -37,7 +38,7 @@ cmakeArguments=""
 cc="gcc"
 cxx="g++"
 
-while getopts ":h p t: b: i: o:" arg; do
+while getopts ":h p t: b: c: i: o:" arg; do
     case "$arg" in
         h)  # Print help and exit without doing anything
             print_help
@@ -52,6 +53,28 @@ while getopts ":h p t: b: i: o:" arg; do
             ;;
         b)  # Set build directory
             buildDir="$OPTARG"
+            ;;
+        c)  # Select compilers
+            compilerFamily="${OPTARG}"
+            if [ "$compilerFamily" = "gcc" ]; then
+                export cc="$(which gcc)"
+                export cxx="$(which g++)"
+            elif [ "$compilerFamily" = "clang" ]; then
+                export cc="$(which clang)"
+                export cxx="$(which clang++)"
+            elif [ "$compilerFamily" = "intel" ]; then
+                if [ -f "/opt/intel/oneapi/setvars.sh" ] ; then
+                    source "/opt/intel/oneapi/setvars.sh" intel64
+                fi
+                export cc="$(which icx)"
+                export cxx="$(which icpx)"
+            elif [ "$compilerFamily" = "acpp" ]; then
+                export cc="$(which acpp)"
+                export cxx="$(which acpp)"
+            else
+                echo "Error: unsupported compiler family: $compilerFamily"
+                exit 1
+            fi
             ;;
         i)  # Set install directory
             installDir="$OPTARG"
