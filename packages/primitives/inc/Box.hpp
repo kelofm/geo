@@ -1,30 +1,27 @@
-#ifndef CIE_GEO_PRIMITIVES_BOX_HPP
-#define CIE_GEO_PRIMITIVES_BOX_HPP
+#pragma once
 
 // --- Utility Includes ---
 #include "packages/compile_time/packages/concepts/inc/container_concepts.hpp"
+#include "packages/maths/inc/power.hpp"
 
-// --- Internal Includes ---
+// --- GEO Includes ---
 #include "packages/primitives/inc/Primitive.hpp"
 #include "packages/primitives/inc/concepts.hpp"
 
 // --- STL Includes ---
 #include <tuple>
-#include <array>
+#include <span>
 
 
 namespace cie::geo {
 
 
-/**
- * Box template
-*/
-template < Size Dimension,
-           concepts::Numeric CoordinateType = Double >
-class Box : public AbsPrimitive<Dimension,CoordinateType>
+/// @brief Box template.
+template <Size Dimension, concepts::Numeric TCoordinate = Double>
+class Box : public AbsPrimitive<Dimension,TCoordinate>
 {
 private:
-    using Base = AbsPrimitive<Dimension,CoordinateType>;
+    using Base = AbsPrimitive<Dimension,TCoordinate>;
 
 public:
     using primitive_constructor_arguments
@@ -33,55 +30,56 @@ public:
     using typename Base::Point;
 
 public:
-    Box(const Point& r_base, const Point& r_lengths);
+    Box() noexcept;
+
+    Box(const Point& rBase, const Point& rLengths) noexcept;
 
     template <class ContainerType1, class ContainerType2>
-    requires concepts::Container<ContainerType1,CoordinateType>
-             && concepts::Container<ContainerType2,CoordinateType>
-    Box( const ContainerType1& r_base,
-         const ContainerType2& r_lengths );
-
-    Box();
-
-    Box( const Box<Dimension,CoordinateType>& r_rhs ) = default;
-    Box<Dimension,CoordinateType>& operator=( const Box<Dimension,CoordinateType>& r_rhs ) = default;
+    requires concepts::Container<ContainerType1,TCoordinate>
+             && concepts::Container<ContainerType2,TCoordinate>
+    Box(const ContainerType1& rBase,
+        const ContainerType2& rLengths) noexcept;
 
     virtual Bool isDegenerate() const override;
 
-    const typename Box<Dimension,CoordinateType>::Point& base() const;
-    const typename Box<Dimension,CoordinateType>::Point& lengths() const;
-    typename Box<Dimension,CoordinateType>::Point& base();
-    typename Box<Dimension,CoordinateType>::Point& lengths();
+    const typename Box<Dimension,TCoordinate>::Point& base() const noexcept;
+
+    const typename Box<Dimension,TCoordinate>::Point& lengths() const noexcept;
+
+    typename Box<Dimension,TCoordinate>::Point& base() noexcept;
+
+    typename Box<Dimension,TCoordinate>::Point& lengths() noexcept;
+
+    void makeCorners(std::span<Point,intPow(2,Dimension)> corners) const noexcept;
 
 protected:
-    typename Box<Dimension,CoordinateType>::Point _base;
-    typename Box<Dimension,CoordinateType>::Point _lengths;
+    typename Box<Dimension,TCoordinate>::Point _base;
+
+    typename Box<Dimension,TCoordinate>::Point _lengths;
 };
 
 
 namespace boolean {
 
-/**
- * Box with point membership test
-*/
-template <Size Dimension, concepts::Numeric CoordinateType = Double>
-class Box :
-    public cie::geo::Box<Dimension,CoordinateType>,
-    public Object<Dimension,Bool,CoordinateType>
+
+/// @brief Box with point membership test
+template <Size Dimension, concepts::Numeric TCoordinate = Double>
+class Box
+    : public ::cie::geo::Box<Dimension,TCoordinate>,
+      public Object<Dimension,Bool,TCoordinate>
 {
 public:
-    Box( const typename Box<Dimension,CoordinateType>::Point& r_base,
-         const typename Box<Dimension,CoordinateType>::Point& r_lengths );
+    Box() noexcept = default;
 
     template <class ContainerType1, class ContainerType2>
-    requires concepts::Container<ContainerType1,CoordinateType>
-             && concepts::Container<ContainerType2,CoordinateType>
-    Box( const ContainerType1& r_base,
-         const ContainerType2& r_lengths );
+    requires concepts::Container<ContainerType1,TCoordinate>
+             && concepts::Container<ContainerType2,TCoordinate>
+    Box(const ContainerType1& rBase,
+        const ContainerType2& rLengths) noexcept;
 
-protected:
-    virtual Bool at( const typename Box<Dimension,CoordinateType>::Point& r_point ) const override;
+    virtual Bool at(const typename Box<Dimension,TCoordinate>::Point& rPoint) const override;
 };
+
 
 } // namespace boolean
 
@@ -106,5 +104,3 @@ concept Box
 
 
 #include "packages/primitives/impl/Box_impl.hpp"
-
-#endif

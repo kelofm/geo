@@ -1,119 +1,79 @@
-#ifndef CIE_GEO_PARTITIONING_AABBOX_IMPL_HPP
-#define CIE_GEO_PARTITIONING_AABBOX_IMPL_HPP
+#pragma once
+
+// help the language server
+#include "packages/partitioning/inc/AABBox.hpp"
 
 // --- Utility Includes ---
-#include "packages/macros/inc/exceptions.hpp"
-
-// --- STL Includes ---
-#include <algorithm>
+#include "packages/maths/inc/OuterProduct.hpp"
 
 
 namespace cie::geo {
 
 
-template < Size Dimension,
-           concepts::Numeric CoordinateType >
-AABBox<Dimension,CoordinateType>::AABBox() :
-    boolean::Box<Dimension,Double>( detail::makeOrigin<Dimension,CoordinateType>(), detail::makeOrigin<Dimension,CoordinateType>() )
+template <Size Dimension, concepts::Numeric TCoordinate>
+Bool AABBox<Dimension,TCoordinate>::contains(const AABBox& rBox) const noexcept
 {
-}
-
-
-template < Size Dimension,
-           concepts::Numeric CoordinateType >
-AABBox<Dimension,CoordinateType>::AABBox( const typename AABBox<Dimension,CoordinateType>::Point& r_base,
-                           const typename AABBox<Dimension,CoordinateType>::Point& r_lengths ) :
-    boolean::Box<Dimension,Double>( r_base, r_lengths )
-{
-}
-
-
-template < Size Dimension,
-           concepts::Numeric CoordinateType >
-inline Bool
-AABBox<Dimension,CoordinateType>::contains( const AABBox<Dimension,CoordinateType>& r_box ) const
-{
-    CIE_BEGIN_EXCEPTION_TRACING
-
     // All points inside
-    for ( Size dim=0; dim<Dimension; ++dim )
-        if ( r_box._base[dim] < this->_base[dim]
-             ||
-             this->_base[dim] + this->_lengths[dim] < r_box._base[dim] + r_box._lengths[dim] )
-            return false;
-
-    return true;
-
-    CIE_END_EXCEPTION_TRACING
-}
-
-
-template < Size Dimension,
-           concepts::Numeric CoordinateType >
-inline Bool
-AABBox<Dimension,CoordinateType>::intersects( const AABBox<Dimension,CoordinateType>& r_box ) const
-{
-    CIE_BEGIN_EXCEPTION_TRACING
-
-    bool hasPointOutside = false;
-
-    // At least one point outside and one inside
-    for ( Size dim=0; dim<Dimension; ++dim )
-    {
-        auto thisMax = this->_base[dim] + this->_lengths[dim];
-        auto boxMax  = r_box._base[dim] + r_box._lengths[dim];
-
-        if ( r_box._base[dim] < this->_base[dim] )
-        {
-            if ( boxMax <= this->_base[dim] )
-                return false;
-            else if ( boxMax < thisMax )
-                hasPointOutside = true;
-        }
-        else if ( r_box._base[dim] < thisMax )
-        {
-            if ( thisMax < boxMax )
-                hasPointOutside = true;
-        }
-        else
+    for (Size dim=0; dim<Dimension; ++dim) {
+        if (rBox._base[dim] < this->_base[dim]
+            ||
+            this->_base[dim] + this->_lengths[dim] < rBox._base[dim] + rBox._lengths[dim])
             return false;
     }
 
-    return hasPointOutside;
-
-    CIE_END_EXCEPTION_TRACING
+    return true;
 }
 
 
-template < Size Dimension,
-           concepts::Numeric CoordinateType >
-inline void
-AABBox<Dimension,CoordinateType>::include( const AABBox<Dimension,CoordinateType>& r_box )
+template <Size Dimension, concepts::Numeric TCoordinate>
+Bool AABBox<Dimension,TCoordinate>::intersects(const AABBox& rBox) const noexcept
 {
-    CIE_BEGIN_EXCEPTION_TRACING
+    //if (rBox.contains(*this)) return true;
 
-    for ( Size dim=0; dim<Dimension; ++dim )
-    {
-        auto dBase = r_box._base[dim] - this->_base[dim];
+    bool hasCornerOutside = false;
+    bool hasCornerInside = false;
 
-        if ( dBase < 0.0 )
-        {
+    // At least one point outside and one inside
+    StaticArray<std::uint8_t,Dimension> samplePointState;
+    do {
+        typename AABBox::Point corner;
+        for (unsigned iDimension=0u; iDimension<Dimension; ++iDimension) {
+            // Construct corner.
+            corner[iDimension] = rBox.base()[iDimension];
+            if (samplePointState[iDimension]) {
+                corner[iDimension] += rBox.lengths()[iDimension];
+            }
+        } // for iDimension in range(Dimension)
+
+        // Check whether the corner is inside or outside the bbox.
+        if (this->at(corner)) hasCornerInside = true;
+        else hasCornerOutside = true;
+
+        if (hasCornerInside && hasCornerOutside) return true;
+    } while (cie::maths::OuterProduct<Dimension>::next(2u, samplePointState.data()));
+
+    return false;
+}
+
+
+template <Size Dimension, concepts::Numeric TCoordinate>
+void AABBox<Dimension,TCoordinate>::include(const AABBox& rBox) noexcept
+{
+    for (Size dim=0; dim<Dimension; ++dim) {
+        auto dBase = rBox._base[dim] - this->_base[dim];
+
+        if (dBase < static_cast<TCoordinate>(0)) {
             this->_base[dim]    += dBase;
             this->_lengths[dim] -= dBase;
         }
 
         auto thisMax = this->_base[dim] + this->_lengths[dim];
-        auto boxMax  = r_box._base[dim] + r_box._lengths[dim];
+        auto boxMax  = rBox._base[dim] + rBox._lengths[dim];
 
-        if ( thisMax < boxMax )
+        if (thisMax < boxMax)
             this->_lengths[dim] = boxMax - this->_base[dim];
-    }
-
-    CIE_END_EXCEPTION_TRACING
+    } // for dim in range(Dimension)
 }
 
 
 } // namespace cie::geo
-
-
-#endif

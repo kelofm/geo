@@ -1,5 +1,4 @@
-#ifndef CIE_GEO_PARTITIONING_BOUNDING_BOX_IMPL_HPP
-#define CIE_GEO_PARTITIONING_BOUNDING_BOX_IMPL_HPP
+#pragma once
 
 // --- Utility Includes ---
 #include "packages/macros/inc/exceptions.hpp"
@@ -9,14 +8,10 @@ namespace cie::geo {
 
 
 template <concepts::HasBoundingBox TObject>
-inline const typename TObject::bounding_box&
-boundingBox( TObject& r_object )
+inline const typename TObject::BoundingBox&
+boundingBox(TObject& rObject) noexcept
 {
-    CIE_BEGIN_EXCEPTION_TRACING
-
-    return r_object.boundingBox();
-
-    CIE_END_EXCEPTION_TRACING
+    return rObject.boundingBox();
 }
 
 
@@ -24,7 +19,7 @@ boundingBox( TObject& r_object )
 template <concepts::StaticContainer TPoint>
 requires std::is_same_v<TPoint,typename GetTraits<TPoint>::Type::Point>
 inline const AABBox<GetTraits<TPoint>::Type::Dimension,typename GetTraits<TPoint>::Type::Coordinate>
-boundingBox( const TPoint& r_point )
+boundingBox(const TPoint& rPoint) noexcept
 {
     CIE_BEGIN_EXCEPTION_TRACING
 
@@ -32,7 +27,7 @@ boundingBox( const TPoint& r_point )
     using Coordinate = typename GetTraitsT<TPoint>::Coordinate;
 
     return AABBox<Dimension,Coordinate>(
-        r_point,
+        rPoint,
         detail::makeOrigin<Dimension,Coordinate>()
     );
 
@@ -41,6 +36,3 @@ boundingBox( const TPoint& r_point )
 
 
 } // namespace cie::geo
-
-
-#endif

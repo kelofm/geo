@@ -7,27 +7,24 @@
 #include "packages/partitioning/inc/AABBoxNode.hpp"
 
 // --- STL Inlcudes ---
-#include <deque>
-#include <memory>
-#include <iostream>
-#include <math.h>
+#include <cmath>
 
 
 namespace cie::geo {
 
 
-class TestAABBoxNodeObjectType final :
-    public AbsBoundableObject<2,Double>,
-    public AABBox<2,Double>
+class TestAABBoxNodeObjectType final
+    : public BoxBoundable<2,Double>,
+      public AABBox<2,Double>
 {
 public:
-    TestAABBoxNodeObjectType( const typename TestAABBoxNodeObjectType::Point& r_base,
-                              const typename TestAABBoxNodeObjectType::Point& r_lengths ) :
-        AbsBoundableObject<2,Double>(),
-        AABBox<2,Double>( r_base, r_lengths ) {}
+    TestAABBoxNodeObjectType(const typename TestAABBoxNodeObjectType::Point& rBase,
+                             const typename TestAABBoxNodeObjectType::Point& rLengths)
+        : BoxBoundable<2,Double>(),
+          AABBox<2,Double>(rBase, rLengths) {}
 private:
-    void computeBoundingBox_impl( typename TestAABBoxNodeObjectType::bounding_box& r_box ) override
-    {r_box = *this;}
+    void computeBoundingBoxImpl(typename TestAABBoxNodeObjectType::BoundingBox& rBox) noexcept override
+    {rBox = *this;}
 };
 
 
@@ -44,57 +41,50 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         CIE_TEST_CASE_INIT( "box objects" )
 
         using Object    = TestAABBoxNodeObjectType;
-        using ObjectPtr = std::shared_ptr<Object>;
         using Node      = AABBoxNode<Object>;
-        using NodePtr   = std::shared_ptr<Node>;
 
         // Generate objects
-        std::deque<ObjectPtr> objects;
+        std::vector<Object> objects;
 
         Size numberOfCellsPerDimension = 5;
 
         for ( Size i=0; i<numberOfCellsPerDimension; ++i )
-            for ( Size j=0; j<numberOfCellsPerDimension; ++j )
-            {
-                auto p_object = ObjectPtr( new Object(
-                    {Double(i)/numberOfCellsPerDimension, Double(j)/numberOfCellsPerDimension},
-                    {1.0 / numberOfCellsPerDimension, 1.0 / numberOfCellsPerDimension}
-                ) );
-                objects.push_back( p_object );
+            for ( Size j=0; j<numberOfCellsPerDimension; ++j ) {
+                objects.emplace_back(
+                    Object::Point {Double(i)/numberOfCellsPerDimension, Double(j)/numberOfCellsPerDimension},
+                    Object::Point {1.0 / numberOfCellsPerDimension, 1.0 / numberOfCellsPerDimension});
             }
 
         // Generate root node
         Double delta = 0.0;
-        auto p_root = NodePtr(
-            new Node( {-delta, -delta},
-                    {1.0+2*delta, 1.0+2*delta},
-                    typename Node::self_ptr() )
-        );
+        Node root(Object::Point {-delta, -delta},
+                  Object::Point {1.0+2*delta, 1.0+2*delta},
+                  nullptr);
 
-        for ( auto& rp_object : objects )
-            CIE_TEST_CHECK_NOTHROW( p_root->addObject(rp_object) );
+        for (auto& rObject : objects)
+            CIE_TEST_CHECK_NOTHROW(root.insert(&rObject));
 
-        CIE_TEST_CHECK( p_root->containedObjects().size() == numberOfCellsPerDimension*numberOfCellsPerDimension );
+        CIE_TEST_CHECK( root.contained().size() == numberOfCellsPerDimension*numberOfCellsPerDimension );
 
         // Partition
         constexpr Size maxObjects = 3;
         constexpr Size maxLevel   = 5;
         bool partitionSuccess = false;
 
-        CIE_TEST_CHECK_NOTHROW( partitionSuccess = p_root->partition( maxObjects, maxLevel ) );
+        CIE_TEST_CHECK_NOTHROW( partitionSuccess = root.partition( maxObjects, maxLevel ) );
         CIE_TEST_CHECK( partitionSuccess );
 
-        CIE_TEST_CHECK_NOTHROW( p_root->shrink() );
+        CIE_TEST_CHECK_NOTHROW( root.shrink() );
 
         // Check number of objects and maximum levels
         {
             auto nodeVisitFunction = [maxLevel=maxLevel,maxObjects=maxObjects](Node* p_node) -> bool {
                 CIE_TEST_CHECK(p_node->level() <= maxLevel);
                 if (p_node->isLeaf())
-                    CIE_TEST_CHECK( p_node->containedObjects().size() <= maxObjects );
+                    CIE_TEST_CHECK( p_node->contained().size() <= maxObjects );
                 return true;
             };
-            CIE_TEST_CHECK_NOTHROW( p_root->visit(nodeVisitFunction) );
+            CIE_TEST_CHECK_NOTHROW( root.visit(nodeVisitFunction) );
         }
     }
 
@@ -103,62 +93,58 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         CIE_TEST_CASE_INIT( "point objects" )
 
         using Object    = PointType;
-        using ObjectPtr = std::shared_ptr<Object>;
         using Node      = AABBoxNode<Object>;
-        using NodePtr   = std::shared_ptr<Node>;
 
         // Create points on a circle
         const Size numberOfObjects = 100;
         const double dt = 2.0 * M_PI / (numberOfObjects-1);
 
-        std::deque<ObjectPtr> objects;
+        std::vector<Object> objects;
         for ( double t=0.0; t<2.0*M_PI; t+=dt )
-            objects.emplace_back( new Object{
-                0.5 * std::cos(t) + 0.5,
-                0.5 * std::sin(t) + 0.5 + 1e-10
-            } );
+            objects.emplace_back(Object {0.5 * std::cos(t) + 0.5,
+                                         0.5 * std::sin(t) + 0.5 + 1e-10});
 
         // Construct root and add points to it
-        CIE_TEST_REQUIRE_NOTHROW( NodePtr( new Node(
-            {0.0, 0.0},
-            {1.0, 1.0},
-            Node::self_ptr()
-        ) ) );
-        auto p_root = NodePtr( new Node(
-            {0.0, 0.0},
-            {1.0, 1.0},
-            Node::self_ptr()
-        ) );
+        CIE_TEST_REQUIRE_NOTHROW(Node(
+            Object {0.0, 0.0},
+            Object {1.0, 1.0},
+            nullptr
+        ));
+        Node root(
+            Object {0.0, 0.0},
+            Object {1.0, 1.0},
+            nullptr
+        );
 
-        for ( auto& rp_object : objects )
-            CIE_TEST_CHECK_NOTHROW( p_root->addObject( rp_object ) );
+        for ( auto& rObject : objects )
+            CIE_TEST_CHECK_NOTHROW( root.insert( &rObject ) );
 
-        CIE_TEST_CHECK( p_root->containedObjects().size() == numberOfObjects );
-        CIE_TEST_CHECK( p_root->intersectedObjects().size() == 0 );
+        CIE_TEST_CHECK( root.contained().size() == numberOfObjects );
+        CIE_TEST_CHECK( root.intersected().size() == 0 );
 
         // Check partitioning
         constexpr Size maxObjects = 5;
         constexpr Size maxLevel   = 3;
         bool partitionSuccess = false;
 
-        CIE_TEST_CHECK_NOTHROW( partitionSuccess = p_root->partition(maxObjects,maxLevel) );
+        CIE_TEST_CHECK_NOTHROW( partitionSuccess = root.partition(maxObjects,maxLevel) );
         CIE_TEST_CHECK( partitionSuccess );
 
         // Check number of objects and maximum level
         Size objectCounter = 0;
 
         auto nodeVisitFunctor = [&objectCounter, maxLevel=maxLevel, maxObjects=maxObjects]( Node* p_node ) -> bool {
-            CIE_TEST_CHECK( p_node->intersectedObjects().size() == 0 );
+            CIE_TEST_CHECK( p_node->intersected().size() == 0 );
             CIE_TEST_CHECK( p_node->level() <= maxLevel );
             if (p_node->isLeaf()) {
-                Size numberOfContainedObjects = p_node->containedObjects().size();
-                CIE_TEST_CHECK( numberOfContainedObjects <= maxObjects );
-                objectCounter += numberOfContainedObjects;
+                Size numberOfcontained = p_node->contained().size();
+                CIE_TEST_CHECK( numberOfcontained <= maxObjects );
+                objectCounter += numberOfcontained;
             }
             return true;
         };
 
-        CIE_TEST_CHECK_NOTHROW( p_root->visit(nodeVisitFunctor) );
+        CIE_TEST_CHECK_NOTHROW( root.visit(nodeVisitFunctor) );
         CIE_TEST_CHECK( objectCounter == numberOfObjects );
     }
 }

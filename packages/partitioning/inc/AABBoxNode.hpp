@@ -1,17 +1,17 @@
-#ifndef CIE_GEO_PARTITIONING_AABBOX_NODE_HPP
-#define CIE_GEO_PARTITIONING_AABBOX_NODE_HPP
+#pragma once
 
 // --- Utility Includes ---
 #include "packages/trees/inc/abstree.hpp"
+#include "packages/stl_extension/inc/DynamicArray.hpp"
 
-// --- Internal Includes ---
+// --- GEO Includes ---
 #include "packages/partitioning/inc/AABBox.hpp"
 #include "packages/partitioning/inc/boundingBox.hpp"
 #include "packages/trees/inc/Cell.hpp"
+#include "packages/primitives/inc/Object.hpp"
 
 // --- STL Includes ---
-#include <deque>
-#include <memory>
+#include <span> // std::span
 
 
 namespace cie::geo {
@@ -24,93 +24,117 @@ namespace cie::geo {
 template <concepts::BoxBoundable TObject>
 class AABBoxNode :
     public Cell<AABBox<GetTraits<TObject>::Type::Dimension,typename GetTraits<TObject>::Type::Coordinate>>,
-    public utils::AbsTree<AABBoxNode<TObject>,std::deque,std::shared_ptr<AABBoxNode<TObject>>>,
+    public utils::AbsTree<AABBoxNode<TObject>,std::deque,Ptr<AABBoxNode<TObject>>>,
     public std::enable_shared_from_this<AABBoxNode<TObject>>
 {
 private:
     using CellBase = Cell<AABBox<GetTraits<TObject>::Type::Dimension,typename GetTraits<TObject>::Type::Coordinate>>;
 
-    using TreeBase = utils::AbsTree<AABBoxNode<TObject>,std::deque,std::shared_ptr<AABBoxNode<TObject>>>;
+    using TreeBase = utils::AbsTree<AABBoxNode<TObject>,std::deque,Ptr<AABBoxNode<TObject>>>;
 
 public:
-    using object_type          = TObject;
+    using ObjectType = TObject;
 
-    using object_ptr           = std::weak_ptr<object_type>;
-
-    using object_ptr_container = std::deque<object_ptr>;
-
-    using self_ptr             = std::weak_ptr<AABBoxNode<TObject>>;
+    using typename CellBase::Point;
 
 public:
-    AABBoxNode(const typename AABBoxNode<TObject>::Point& r_base,
-               const typename AABBoxNode<TObject>::Point& r_lengths,
-               self_ptr p_parent);
+    AABBoxNode(const Point& rBase,
+               const Point& rLengths,
+               AABBoxNode* pParent) noexcept;
 
-    AABBoxNode();
+    AABBoxNode() noexcept;
 
     /**
-     * If the object fits in this box, add it to the list of objects
-     * and send it down the tree
-     * @param p_object pointer to object to add
+     * If the object fits in this box, add it to the list of objects.
+     * @param pObject pointer to object to add
      */
-    void addObject(object_ptr p_object);
-
-    /// Recursively erase expired objects from storage
-    void eraseExpired();
+    bool insert(Ptr<ObjectType> pObject);
 
     /**
-     * Readjust box to fit all remaining objects,
-     * then adjust children sizes as well
+     * Readjust box to fit all children and remaining objects.
      */
     void shrink();
 
     /**
-     * @brief Find highest level node that contains the query object
-     * @param p_object pointer to query object
-     * @return pointer to node containing the query object, or a default
-     * constructed pointer if the search fails
+     * @brief Find the highest level node that contains the input object.
+     * @param pObject Pointer to input object.
+     * @return Pointer to node containing the input object, or nullptr
+     *         if the search fails.
      */
-    self_ptr find(const object_ptr p_object);
+    Ptr<const AABBoxNode> find(Ptr<const ObjectType> pObject) const;
 
     /**
-     * Subdivide nodes until the number of contained objects reaches or
-     * drops below the specified limit, or the recursion depth is reached
+     * @brief Find the highest level node that contains the input object.
+     * @param pObject Pointer to input object.
+     * @return Pointer to node containing the input object, or nullptr
+     *         if the search fails.
+     */
+    Ptr<AABBoxNode> find(Ptr<ObjectType> pObject);
+
+    /// @brief Find the highest level node that contains the input point.
+    /// @param rPoint Pointer to input point.
+    /// @return Pointer to node containing the input point, or nullptr
+    ///         if the search fails.
+    Ptr<const AABBoxNode> find(Ref<const Point> rPoint) const;
+
+    /// @brief Find the highest level node that contains the input point.
+    /// @param rPoint Pointer to input point.
+    /// @return Pointer to node containing the input point, or nullptr
+    ///         if the search fails.
+    Ptr<AABBoxNode> find(Ref<const Point> rPoint);
+
+    /**
+     * @details Subdivide nodes until the number of contained objects reaches or
+     *          drops below the specified limit, or the maximum recursion depth is reached.
      * @param maxObjects maximum number of objects in leaf nodes (termination criterion)
      * @param maxLevel recursion depth limit (termination constraint)
      * @return false if recursion depth is reached before the object limit
      */
-    bool partition(Size maxObjects,
-                    Size maxLevel);
+    bool partition(Size maxObjects, Size maxLevel);
 
-    /// Access to contained objects
-    const object_ptr_container& containedObjects() const;
+    /// @brief Access to contained objects.
+    std::span<const Ptr<const TObject>> contained() const noexcept;
 
-    /// Access to intersected objects
-    const object_ptr_container& intersectedObjects() const;
+    /// @brief Mutable access to contained objects.
+    std::span<Ptr<TObject>> contained() noexcept;
+
+    /// @brief Access to intersected objects.
+    std::span<const Ptr<const TObject>> intersected() const noexcept;
+
+    /// @brief Mutable access to intersected objects.
+    std::span<Ptr<TObject>> intersected() noexcept;
 
     /**
      * Parent node access
      * @return default constructed pointer if this node is the root
      */
-    self_ptr parent();
+    Ptr<AABBoxNode> parent() noexcept;
 
     /**
      * Parent node access
      * @return reference to default constructed pointer if this node is the root
      */
-    const self_ptr& parent() const;
+    Ptr<const AABBoxNode> parent() const noexcept;
 
-protected:
-    object_ptr_container _containedObjects;
+private:
+    bool nonRecursiveInsert(Ptr<TObject> pObject);
 
-    object_ptr_container _intersectedObjects;
+    static void insertObject(Ptr<TObject> pObject, Ref<DynamicArray<Ptr<TObject>>> rSet);
 
-    self_ptr             _p_parent;
+    static DynamicArray<Ptr<TObject>>::iterator findObject(Ptr<TObject> pObject, Ref<DynamicArray<Ptr<TObject>>> rSet);
+
+    static DynamicArray<Ptr<TObject>>::const_iterator findObject(Ptr<TObject> pObject, Ref<const DynamicArray<Ptr<TObject>>> rSet);
+
+    static void eraseObjects(std::span<Ptr<TObject>> objects, Ref<DynamicArray<Ptr<TObject>>> rSet);
+
+    DynamicArray<Ptr<TObject>> _containedObjects;
+
+    DynamicArray<Ptr<TObject>> _intersectedObjects;
+
+    AABBoxNode* _pParent;
 };
 
 
 } // namespace cie::geo
 
 #include "packages/partitioning/impl/AABBoxNode_impl.hpp"
-
-#endif

@@ -16,6 +16,7 @@ class Ellipsoid : public AbsPrimitive<Dimension,CoordinateType>
 {
 public:
     using typename AbsPrimitive<Dimension,CoordinateType>::Point;
+
 public:
     Ellipsoid( const Point& r_center,
                const Point& r_radii );
@@ -64,7 +65,6 @@ public:
     Ellipsoid( Ellipsoid<Dimension,CoordinateType>&& r_rhs ) = default;
     Ellipsoid<Dimension,CoordinateType>& operator=( const Ellipsoid<Dimension,CoordinateType>& r_rhs ) = default;
 
-protected:
     virtual Bool at( const Point& r_point ) const override;
 };
 

@@ -1,5 +1,4 @@
-#ifndef CIE_GEO_OBJECT_HPP
-#define CIE_GEO_OBJECT_HPP
+#pragma once
 
 // --- Utility Includes ---
 #include "packages/compile_time/packages/concepts/inc/container_concepts.hpp"
@@ -11,7 +10,8 @@
 
 // --- STL Includes ---
 #include <memory>
-#include <array>
+#include <concepts>
+
 
 namespace cie::geo {
 
@@ -30,14 +30,6 @@ public:
 
 public:
     virtual ~Object() {}
-
-    TValue evaluate(const Point& r_point) const;
-
-    template <concepts::Container<TCoordinate> TContainer>
-    TValue evaluate(const TContainer& point) const;
-
-    template <concepts::Container<TCoordinate> TContainer>
-    TValue evaluate(TContainer&& point) const;
 
     virtual TValue at(const typename Object::Point& point) const = 0;
 };
@@ -60,6 +52,14 @@ typename geo::Traits<Dimension,TCoordinate>::Point makeOrigin();
 
 } // namespace cie::geo
 
-#include "packages/primitives/impl/Object_impl.hpp"
 
-#endif
+namespace cie::concepts {
+template <class T, class TValue = bool>
+concept SamplableGeometry
+= Object<T> && requires (const T& rInstance, typename T::Point location) {
+    {rInstance.at(location)} -> std::same_as<TValue>;
+};
+} // namespace cie::concepts
+
+
+#include "packages/primitives/impl/Object_impl.hpp"

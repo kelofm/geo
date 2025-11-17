@@ -1,9 +1,12 @@
-#ifndef CIE_GEO_PRIMITIVES_BOX_IMPL_HPP
-#define CIE_GEO_PRIMITIVES_BOX_IMPL_HPP
+#pragma once
+
+// help the language server
+#include "packages/primitives/inc/Box.hpp"
 
 // --- Utility Includes ---
 #include "packages/macros/inc/checks.hpp"
 #include "packages/macros/inc/exceptions.hpp"
+#include "packages/maths/inc/OuterProduct.hpp" // OuterProduct
 
 // --- STL Includes ---
 #include <algorithm>
@@ -16,7 +19,7 @@ namespace cie::geo {
 
 template < Size Dimension,
            concepts::Numeric CoordinateType >
-Box<Dimension,CoordinateType>::Box(const Point& r_base, const Point& r_lengths)
+Box<Dimension,CoordinateType>::Box(const Point& r_base, const Point& r_lengths) noexcept
     : _base( r_base ),
       _lengths( r_lengths )
 {
@@ -32,8 +35,8 @@ template < Size Dimension,
 template <class ContainerType1, class ContainerType2>
 requires concepts::Container<ContainerType1,CoordinateType>
          && concepts::Container<ContainerType2,CoordinateType>
-Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
-                                    const ContainerType2& r_lengths  )
+Box<Dimension,CoordinateType>::Box(const ContainerType1& r_base,
+                                   const ContainerType2& r_lengths) noexcept
 {
     CIE_OUT_OF_RANGE_CHECK( r_base.size() == Dimension )
     CIE_OUT_OF_RANGE_CHECK( r_lengths.size() == Dimension )
@@ -54,9 +57,9 @@ Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
 
 template < Size Dimension,
            concepts::Numeric CoordinateType >
-Box<Dimension,CoordinateType>::Box() :
-    Box<Dimension,CoordinateType>( detail::makeOrigin<Dimension,CoordinateType>(),
-                                   detail::makeOrigin<Dimension,CoordinateType>() )
+Box<Dimension,CoordinateType>::Box() noexcept
+    : Box<Dimension,CoordinateType>(detail::makeOrigin<Dimension,CoordinateType>(),
+                                    detail::makeOrigin<Dimension,CoordinateType>() )
 {
 }
 
@@ -81,7 +84,7 @@ Box<Dimension,CoordinateType>::isDegenerate() const
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline const typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::base() const
+Box<Dimension,CoordinateType>::base() const noexcept
 {
     return _base;
 }
@@ -90,7 +93,7 @@ Box<Dimension,CoordinateType>::base() const
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline const typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::lengths() const
+Box<Dimension,CoordinateType>::lengths() const noexcept
 {
     return _lengths;
 }
@@ -99,7 +102,7 @@ Box<Dimension,CoordinateType>::lengths() const
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::base()
+Box<Dimension,CoordinateType>::base() noexcept
 {
     return _base;
 }
@@ -108,9 +111,27 @@ Box<Dimension,CoordinateType>::base()
 template < Size Dimension,
            concepts::Numeric CoordinateType >
 inline typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::lengths()
+Box<Dimension,CoordinateType>::lengths() noexcept
 {
     return _lengths;
+}
+
+
+template <Size Dimension, concepts::Numeric TCoordinate>
+void Box<Dimension,TCoordinate>::makeCorners(std::span<Point,intPow(2,Dimension)> corners) const noexcept
+{
+    StaticArray<std::uint8_t,Dimension> state;
+    std::fill_n(state.data(), Dimension, static_cast<std::uint8_t>(0));
+    auto itCorner = corners.data();
+
+    do {
+        for (unsigned iDimension=0u; iDimension<Dimension; ++iDimension) {
+            (*itCorner)[iDimension] = _base[iDimension];
+            if (state[iDimension]) (*itCorner)[iDimension] += _lengths[iDimension];
+        } // for iDimension in range(Dimension)
+
+        ++itCorner;
+    } while (::cie::maths::OuterProduct<Dimension>::next(2u, state.data()));
 }
 
 
@@ -120,40 +141,33 @@ Box<Dimension,CoordinateType>::lengths()
 namespace boolean {
 
 
-template <Size Dimension, concepts::Numeric CoordinateType>
-Box<Dimension,CoordinateType>::Box( const typename Box<Dimension,CoordinateType>::Point& r_base,
-                                    const typename Box<Dimension,CoordinateType>::Point& r_lengths ) :
-    cie::geo::Box<Dimension,CoordinateType>( r_base, r_lengths )
-{
-}
-
-
 template <  Size Dimension,
             concepts::Numeric CoordinateType   >
 template <class ContainerType1, class ContainerType2>
     requires concepts::Container<ContainerType1,CoordinateType>
                 && concepts::Container<ContainerType2,CoordinateType>
 Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
-                                    const ContainerType2& r_lengths  ) :
-    cie::geo::Box<Dimension,CoordinateType>( r_base, r_lengths )
+                                    const ContainerType2& r_lengths  ) noexcept
+    : cie::geo::Box<Dimension,CoordinateType>(r_base, r_lengths)
 {
 }
 
 
-template < Size Dimension,
-           concepts::Numeric CoordinateType >
-Bool
-Box<Dimension,CoordinateType>::at( const typename Box<Dimension,CoordinateType>::Point& r_point ) const
+template <Size Dimension, concepts::Numeric CoordinateType>
+Bool Box<Dimension,CoordinateType>::at(const typename Box<Dimension,CoordinateType>::Point& rPoint) const
 {
-    CIE_OUT_OF_RANGE_CHECK( r_point.size() == Dimension )
+    auto itBase     = this->_base.begin();
+    auto itLength   = this->_lengths.begin();
+    auto itPointEnd = rPoint.end();
 
-    auto it_base        = this->_base.begin();
-    auto it_length      = this->_lengths.begin();
-    auto it_pointEnd    = r_point.end();
-
-    for (auto it_point=r_point.begin(); it_point!=it_pointEnd; ++it_point,++it_base,++it_length)
-        if ( (*it_point<(*it_base)) == (*it_point<(*it_base + (*it_length))) )
+    for (auto itPoint=rPoint.begin(); itPoint!=itPointEnd; ++itPoint,++itBase,++itLength) {
+        const bool lessThanLowerBound = (*itPoint) < (*itBase);
+        const bool lessThanUpperBound = (*itPoint) < ((*itBase) + (*itLength));
+        if (lessThanLowerBound == lessThanUpperBound) {
             return false;
+        }
+    }
+
     return true;
 }
 
@@ -162,6 +176,3 @@ Box<Dimension,CoordinateType>::at( const typename Box<Dimension,CoordinateType>:
 
 
 } // namespace cie::geo
-
-
-#endif

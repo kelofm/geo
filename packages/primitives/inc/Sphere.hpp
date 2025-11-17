@@ -32,7 +32,7 @@ public:
 
 protected:
     typename Sphere<Dimension,CoordinateType>::Point _center;
-    CoordinateType                                        _radius;
+    CoordinateType                                   _radius;
 };
 
 

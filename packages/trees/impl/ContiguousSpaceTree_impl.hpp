@@ -303,8 +303,10 @@ ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeTrace(Ref<const Node> rNode) 
 
 template <concepts::Object TGeometry, concepts::Integer TIndex, class TTag>
 template <concepts::Iterator<typename TGeometry::Coordinate> TBaseIt, concepts::Iterator<typename TGeometry::Coordinate> TLengthIt>
-inline void
-ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> rNode, TBaseIt itBaseBegin, TLengthIt itLengthBegin) const
+void
+ContiguousSpaceTree<TGeometry,TIndex,TTag>::getNodeGeometryImpl(Ref<const Node> rNode,
+                                                                TBaseIt itBaseBegin,
+                                                                TLengthIt itLengthBegin) const
 requires concepts::Cube<TGeometry>
 {
     CIE_BEGIN_EXCEPTION_TRACING

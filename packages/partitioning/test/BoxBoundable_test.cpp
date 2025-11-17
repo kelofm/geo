@@ -8,22 +8,21 @@
 namespace cie::geo {
 
 
-class TestBoundableObject : public AbsBoundableObject<1,Double>
+class TestBoundableObject : public BoxBoundable<1,Double>
 {
 public:
     TestBoundableObject() :
-        AbsBoundableObject<1,Double>(),
+        BoxBoundable<1,Double>(),
         _counter( 0 )
     { this->computeBoundingBox(); }
 
     Size counter() const
     { return this->_counter; }
 
-    void setBoundingBoxShouldRecompute()
-    { this->boundingBoxShouldRecompute(); }
+    using BoxBoundable<1,Double>::geometryChanged;
 
 private:
-    void computeBoundingBox_impl( typename TestBoundableObject::bounding_box& r_box ) override
+    void computeBoundingBoxImpl(TestBoundableObject::BoundingBox& r_box) noexcept override
     {
         this->_counter++;
         r_box.base() = { Double(this->_counter) };
@@ -45,7 +44,8 @@ bool isBoxBoundable(const T&)
 {return true;}
 
 
-template <NotBoxBoundable T>
+template <class T>
+requires (!concepts::BoxBoundable<T>)
 bool isBoxBoundable(const T&)
 {return false;}
 
@@ -75,7 +75,7 @@ CIE_TEST_CASE( "AbsBoundableObject", "[partitioning]" )
     CIE_TEST_CHECK( boundingBox(test).lengths().size() == 1 );
     CIE_TEST_CHECK( boundingBox(test).lengths()[0] == Approx(1.0) );
 
-    CIE_TEST_CHECK_NOTHROW( test.setBoundingBoxShouldRecompute() );
+    CIE_TEST_CHECK_NOTHROW( test.geometryChanged() );
     CIE_TEST_CHECK( test.counter() == 1 );
 
     CIE_TEST_REQUIRE_NOTHROW( boundingBox(test) );

@@ -66,10 +66,9 @@ public:
 
     template <class ContainerType>
     requires concepts::Container<ContainerType,CoordinateType>
-    Cube( const ContainerType& base, 
+    Cube( const ContainerType& base,
           CoordinateType length );
 
-protected:
     virtual Bool at( const typename Cube<Dimension,CoordinateType>::Point& point ) const override;
 };
 
