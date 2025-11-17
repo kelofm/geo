@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
 # Declare all CMake settings
-set(CIE_ENABLE_SYCL                                         ON CACHE BOOL "Build CiE projects with SYCL support.")
 set(CIE_ENABLE_MPI                                          OFF CACHE BOOL "Build CiE projects with MPI support")
 set(CIE_ENABLE_PROFILING                                    OFF CACHE BOOL "Enable CiE projects profiling macros.")
 set(CIE_ENABLE_OUT_OF_RANGE_CHECKS                          OFF CACHE BOOL "Enable macros for checking out-of-range errors.")
