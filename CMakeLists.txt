@@ -7,13 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
 # Declare all CMake settings
+set(CIE_ENABLE_SYCL                                         ON CACHE BOOL "Build CiE projects with SYCL support.")
+set(CIE_ENABLE_MPI                                          OFF CACHE BOOL "Build CiE projects with MPI support")
+set(CIE_ENABLE_PROFILING                                    OFF CACHE BOOL "Enable CiE projects profiling macros.")
+set(CIE_ENABLE_OUT_OF_RANGE_CHECKS                          OFF CACHE BOOL "Enable macros for checking out-of-range errors.")
+set(CIE_ENABLE_DIVISION_BY_ZERO_CHECKS                      OFF CACHE BOOL "Enable macros for checking division by zero errors.")
 set(${PROJECT_NAME_UPPER}_BUILD_SHARED_LIBRARY              ON CACHE BOOL "build shared libraries instead of static ones")
 set(${PROJECT_NAME_UPPER}_BUILD_PYTHON_MODULE               ON CACHE BOOL "build python bindings for ${PROJECT_NAME}")
 set(${PROJECT_NAME_UPPER}_BUILD_TESTS                       ON CACHE BOOL "build testrunner for ${PROJECT_NAME}")
-set(${PROJECT_NAME_UPPER}_ENABLE_MPI                        OFF CACHE BOOL "Build with MPI support")
-set(${PROJECT_NAME_UPPER}_ENABLE_PROFILING                  OFF CACHE BOOL "Enable profiling macros.")
-set(${PROJECT_NAME_UPPER}_ENABLE_OUT_OF_RANGE_CHECKS        OFF CACHE BOOL "Enable macros for checking out-of-range errors.")
-set(${PROJECT_NAME_UPPER}_ENABLE_DIVISION_BY_ZERO_CHECKS    OFF CACHE BOOL "Enable macros for checking division by zero errors.")
 
 # Language server
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
