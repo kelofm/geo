@@ -3,6 +3,7 @@
 // --- Utility Includes ---
 #include "packages/trees/inc/abstree.hpp"
 #include "packages/stl_extension/inc/DynamicArray.hpp"
+#include "packages/compile_time/packages/concepts/inc/functional.hpp"
 
 // --- GEO Includes ---
 #include "packages/partitioning/inc/AABBox.hpp"
@@ -12,6 +13,7 @@
 
 // --- STL Includes ---
 #include <span> // std::span
+#include <optional> // std::optional
 
 
 namespace cie::geo {
@@ -24,13 +26,13 @@ namespace cie::geo {
 template <concepts::BoxBoundable TObject>
 class AABBoxNode :
     public Cell<AABBox<GetTraits<TObject>::Type::Dimension,typename GetTraits<TObject>::Type::Coordinate>>,
-    public utils::AbsTree<AABBoxNode<TObject>,std::deque,Ptr<AABBoxNode<TObject>>>,
+    public utils::AbsTree<AABBoxNode<TObject>,std::vector,Ptr<AABBoxNode<TObject>>>,
     public std::enable_shared_from_this<AABBoxNode<TObject>>
 {
 private:
     using CellBase = Cell<AABBox<GetTraits<TObject>::Type::Dimension,typename GetTraits<TObject>::Type::Coordinate>>;
 
-    using TreeBase = utils::AbsTree<AABBoxNode<TObject>,std::deque,Ptr<AABBoxNode<TObject>>>;
+    using TreeBase = utils::AbsTree<AABBoxNode<TObject>,std::vector,Ptr<AABBoxNode<TObject>>>;
 
 public:
     using ObjectType = TObject;
@@ -133,6 +135,64 @@ private:
 
     AABBoxNode* _pParent;
 };
+
+
+template <concepts::Numeric TCoordinate,
+          unsigned Dimension,
+          concepts::UnsignedInteger TObjectIndex,
+          class TAllocator>
+class FlatAABBoxTree
+{
+public:
+    struct Node {
+        using Geometry = boolean::Box<Dimension,TCoordinate>;
+
+        std::span<const TObjectIndex> contained() const noexcept;
+        std::span<TObjectIndex> contained() noexcept;
+        std::span<const TObjectIndex> intersected() const noexcept;
+        std::span<TObjectIndex> intersected() noexcept;
+        std::optional<Ptr<const Node>> child() const noexcept;
+        std::optional<Ptr<Node>> child() noexcept;
+        std::optional<Ptr<const Node>> sibling() const noexcept;
+        std::optional<Ptr<Node>> sibling() noexcept;
+        bool isLeaf() const noexcept;
+
+        /// @brief Find an object that contains the provided point.
+        /// @param rPoint Coordinates of the point to find.
+        /// @param objects Range of objects the original @ref AABBoxNode "tree" was built over.
+        template <concepts::SamplableGeometry TObject>
+        std::optional<Ptr<const TObject>> find(Ref<const typename Geometry::Point> rPoint,
+                                               std::span<const TObject> objects) const noexcept;
+
+        Geometry geometry;
+        Ptr<Node> maybeSibling;
+        unsigned containedCount;
+        unsigned intersectedCount;
+    }; // struct Node
+
+    template <class TObject,
+              concepts::FunctionWithSignature<TObjectIndex,Ref<const TObject>> THasher>
+    static FlatAABBoxTree flatten(Ref<const AABBoxNode<TObject>> rRoot,
+                                  THasher&& rHasher,
+                                  TAllocator&& rAllocator);
+
+    ~FlatAABBoxTree();
+
+    std::optional<Ptr<const Node>> root() const noexcept;
+
+    std::optional<Ptr<Node>> root() noexcept;
+
+private:
+    FlatAABBoxTree(TAllocator&& rAllocator) noexcept;
+
+    FlatAABBoxTree(const FlatAABBoxTree&) = delete;
+
+    FlatAABBoxTree& operator=(const FlatAABBoxTree&) = delete;
+
+    Ptr<std::byte> _data;
+
+    TAllocator _allocator;
+}; // class FlatAABBoxTree
 
 
 } // namespace cie::geo
