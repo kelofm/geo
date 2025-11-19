@@ -78,6 +78,11 @@ public:
         const ContainerType2& rLengths) noexcept;
 
     virtual Bool at(const typename Box<Dimension,TCoordinate>::Point& rPoint) const override;
+
+    template <unsigned iDim = 0u>
+    static bool at(Ptr<const TCoordinate> pPointBegin,
+                   Ptr<const TCoordinate> pBaseBegin,
+                   Ptr<const TCoordinate> pLengthBegin) noexcept;
 };
 
 

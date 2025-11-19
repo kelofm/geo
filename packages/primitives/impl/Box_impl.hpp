@@ -18,8 +18,8 @@ namespace cie::geo {
 /* --- Box --- */
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
-Box<Dimension,CoordinateType>::Box(const Point& r_base, const Point& r_lengths) noexcept
+           concepts::Numeric TCoordinate >
+Box<Dimension,TCoordinate>::Box(const Point& r_base, const Point& r_lengths) noexcept
     : _base( r_base ),
       _lengths( r_lengths )
 {
@@ -31,11 +31,11 @@ Box<Dimension,CoordinateType>::Box(const Point& r_base, const Point& r_lengths) 
 
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
+           concepts::Numeric TCoordinate >
 template <class ContainerType1, class ContainerType2>
-requires concepts::Container<ContainerType1,CoordinateType>
-         && concepts::Container<ContainerType2,CoordinateType>
-Box<Dimension,CoordinateType>::Box(const ContainerType1& r_base,
+requires concepts::Container<ContainerType1,TCoordinate>
+         && concepts::Container<ContainerType2,TCoordinate>
+Box<Dimension,TCoordinate>::Box(const ContainerType1& r_base,
                                    const ContainerType2& r_lengths) noexcept
 {
     CIE_OUT_OF_RANGE_CHECK( r_base.size() == Dimension )
@@ -56,18 +56,18 @@ Box<Dimension,CoordinateType>::Box(const ContainerType1& r_base,
 
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
-Box<Dimension,CoordinateType>::Box() noexcept
-    : Box<Dimension,CoordinateType>(detail::makeOrigin<Dimension,CoordinateType>(),
-                                    detail::makeOrigin<Dimension,CoordinateType>() )
+           concepts::Numeric TCoordinate >
+Box<Dimension,TCoordinate>::Box() noexcept
+    : Box<Dimension,TCoordinate>(detail::makeOrigin<Dimension,TCoordinate>(),
+                                    detail::makeOrigin<Dimension,TCoordinate>() )
 {
 }
 
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
+           concepts::Numeric TCoordinate >
 inline Bool
-Box<Dimension,CoordinateType>::isDegenerate() const
+Box<Dimension,TCoordinate>::isDegenerate() const
 {
     Bool degenerate = false;
     for (const auto& r_length : _lengths)
@@ -82,36 +82,36 @@ Box<Dimension,CoordinateType>::isDegenerate() const
 
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
-inline const typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::base() const noexcept
+           concepts::Numeric TCoordinate >
+inline const typename Box<Dimension,TCoordinate>::Point&
+Box<Dimension,TCoordinate>::base() const noexcept
 {
     return _base;
 }
 
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
-inline const typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::lengths() const noexcept
+           concepts::Numeric TCoordinate >
+inline const typename Box<Dimension,TCoordinate>::Point&
+Box<Dimension,TCoordinate>::lengths() const noexcept
 {
     return _lengths;
 }
 
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
-inline typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::base() noexcept
+           concepts::Numeric TCoordinate >
+inline typename Box<Dimension,TCoordinate>::Point&
+Box<Dimension,TCoordinate>::base() noexcept
 {
     return _base;
 }
 
 
 template < Size Dimension,
-           concepts::Numeric CoordinateType >
-inline typename Box<Dimension,CoordinateType>::Point&
-Box<Dimension,CoordinateType>::lengths() noexcept
+           concepts::Numeric TCoordinate >
+inline typename Box<Dimension,TCoordinate>::Point&
+Box<Dimension,TCoordinate>::lengths() noexcept
 {
     return _lengths;
 }
@@ -142,29 +142,37 @@ namespace boolean {
 
 
 template <  Size Dimension,
-            concepts::Numeric CoordinateType   >
+            concepts::Numeric TCoordinate   >
 template <class ContainerType1, class ContainerType2>
-    requires concepts::Container<ContainerType1,CoordinateType>
-                && concepts::Container<ContainerType2,CoordinateType>
-Box<Dimension,CoordinateType>::Box( const ContainerType1& r_base,
+    requires concepts::Container<ContainerType1,TCoordinate>
+                && concepts::Container<ContainerType2,TCoordinate>
+Box<Dimension,TCoordinate>::Box( const ContainerType1& r_base,
                                     const ContainerType2& r_lengths  ) noexcept
-    : cie::geo::Box<Dimension,CoordinateType>(r_base, r_lengths)
+    : cie::geo::Box<Dimension,TCoordinate>(r_base, r_lengths)
 {
 }
 
 
-template <Size Dimension, concepts::Numeric CoordinateType>
-Bool Box<Dimension,CoordinateType>::at(const typename Box<Dimension,CoordinateType>::Point& rPoint) const
+template <Size Dimension, concepts::Numeric TCoordinate>
+Bool Box<Dimension,TCoordinate>::at(const typename Box<Dimension,TCoordinate>::Point& rPoint) const
 {
-    auto itBase     = this->_base.begin();
-    auto itLength   = this->_lengths.begin();
-    auto itPointEnd = rPoint.end();
+    return Box::at(rPoint.data(), this->_base.data(), this->_lengths.data());
+}
 
-    for (auto itPoint=rPoint.begin(); itPoint!=itPointEnd; ++itPoint,++itBase,++itLength) {
-        const bool lessThanLowerBound = (*itPoint) < (*itBase);
-        const bool lessThanUpperBound = (*itPoint) < ((*itBase) + (*itLength));
-        if (lessThanLowerBound == lessThanUpperBound) {
-            return false;
+
+template <Size Dimension, concepts::Numeric TCoordinate>
+template <unsigned iDim>
+bool Box<Dimension,TCoordinate>::at(Ptr<const TCoordinate> pPointBegin,
+                                    Ptr<const TCoordinate> pBaseBegin,
+                                    Ptr<const TCoordinate> pLengthBegin) noexcept
+{
+    if constexpr (iDim != Dimension) {
+        const bool lessThanLowerBound = *pPointBegin < *pBaseBegin;
+        const bool lessThanUpperBound = *pPointBegin < (*pBaseBegin) + (*pLengthBegin);
+        if (lessThanLowerBound == lessThanUpperBound) return false;
+
+        if constexpr (iDim + 1 < Dimension) {
+            if (!Box::template at<iDim+1>(++pPointBegin, ++pBaseBegin, ++pLengthBegin)) return false;
         }
     }
 
