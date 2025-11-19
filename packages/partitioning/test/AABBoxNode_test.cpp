@@ -117,7 +117,8 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
                 std::cout << "\n";
                 std::cout << "intersected   : ";
                 for (auto c : rNode.intersected()) std::cout << c << " ";
-                std::cout << "\n\n";
+                std::cout << "\n";
+                std::cout << "\n";
 
                 if (rNode.isLeaf()) {
                     pMaybeNode = rNode.sibling();

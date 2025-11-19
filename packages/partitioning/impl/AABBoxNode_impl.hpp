@@ -435,6 +435,84 @@ template <concepts::Numeric TCoordinate,
           unsigned Dimension,
           concepts::UnsignedInteger TObjectIndex,
           class TAllocator>
+std::span<const TCoordinate,Dimension>
+FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node::base() const noexcept
+{
+    Ptr<const TCoordinate> pBegin = static_cast<Ptr<const TCoordinate>>(static_cast<Ptr<const void>>(_data));
+    return std::span<const TCoordinate>(
+        pBegin,
+        Dimension
+    );
+}
+
+
+template <concepts::Numeric TCoordinate,
+          unsigned Dimension,
+          concepts::UnsignedInteger TObjectIndex,
+          class TAllocator>
+std::span<TCoordinate,Dimension>
+FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node::base() noexcept
+{
+    Ptr<TCoordinate> pBegin = static_cast<Ptr<TCoordinate>>(static_cast<Ptr<void>>(_data));
+    return std::span<TCoordinate>(
+        pBegin,
+        Dimension
+    );
+}
+
+
+template <concepts::Numeric TCoordinate,
+          unsigned Dimension,
+          concepts::UnsignedInteger TObjectIndex,
+          class TAllocator>
+std::span<const TCoordinate,Dimension>
+FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node::lengths() const noexcept
+{
+    const auto base = this->base();
+    return std::span<const TCoordinate>(
+        base.data() + base.size(),
+        Dimension
+    );
+}
+
+
+template <concepts::Numeric TCoordinate,
+          unsigned Dimension,
+          concepts::UnsignedInteger TObjectIndex,
+          class TAllocator>
+std::span<TCoordinate,Dimension>
+FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node::lengths() noexcept
+{
+    const auto base = this->base();
+    return std::span<TCoordinate>(
+        base.data() + base.size(),
+        Dimension
+    );
+}
+
+
+template <concepts::Numeric TCoordinate,
+          unsigned Dimension,
+          concepts::UnsignedInteger TObjectIndex,
+          class TAllocator>
+std::optional<const typename FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node>
+FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node::maybeSibling() const noexcept
+{
+    const auto lengths = this->lengths();
+    Ptr<const TCoordinate> pLengthEnd = lengths.data() + lengths.size();
+    Ptr<const Ptr<const std::byte>> pSiblingBegin = static_cast<Ptr<const Ptr<const std::byte>>>(static_cast<Ptr<const void>>(pLengthEnd));
+    if (*pSiblingBegin != nullptr) {
+        return typename FlatAABBoxTree::Node {const_cast<Ptr<std::byte>>(*pSiblingBegin)};
+    } else {
+        return {};
+    }
+}
+
+
+template <concepts::Numeric TCoordinate,
+          unsigned Dimension,
+          concepts::UnsignedInteger TObjectIndex,
+          class TAllocator>
 std::span<const TObjectIndex>
 FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node::contained() const noexcept
 {
@@ -779,19 +857,19 @@ FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::flatten(Ref<const
                     // so we don't know who its younger sibling is or whether
                     // it even has one, so an extra trace point has to be
                     // pushed to the trace stack.
-                    trace.emplace(&rCurrent, currentLevel);
+                    trace.emplace(pCurrent, currentLevel);
                 } else if (previousLevel == currentLevel) {
                     // The node at the top of the trace stack is the youngest elder sibling.
                     // This is the only case where the sibling pointer is set retroactively.
-                    trace.top().first->maybeSibling = &rCurrent;
-                    trace.top().first = &rCurrent;
+                    trace.top().first->maybeSibling = pCurrent;
+                    trace.top().first = pCurrent;
                 } else {
                     // The node at the top of the trace stack is the
                     // youngest child of the youngest elder sibling.
                     // We know for sure that it does not have a
                     // younger sibling so it can be safely ejected
                     // from the trace stack.
-                    do {trace.pop();} while (!trace.empty() && trace.top().second < currentLevel);
+                    do {trace.pop();} while (!trace.empty() && currentLevel < trace.top().second);
                 }
             } else {
                 trace.emplace(pCurrent, currentLevel);
@@ -799,7 +877,7 @@ FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::flatten(Ref<const
 
             pCurrent = rCurrent.next();
             return true;
-        });
+        }, utils::VisitStrategy::DepthFirst);
     } // if byteCount
 
     return flatTree;

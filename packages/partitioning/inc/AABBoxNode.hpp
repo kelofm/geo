@@ -144,9 +144,8 @@ template <concepts::Numeric TCoordinate,
 class FlatAABBoxTree
 {
 public:
-    struct Node {
-        using Geometry = boolean::Box<Dimension,TCoordinate>;
-
+    class Node {
+    public:
         std::span<const TObjectIndex> contained() const noexcept;
         std::span<TObjectIndex> contained() noexcept;
         std::span<const TObjectIndex> intersected() const noexcept;
@@ -166,10 +165,19 @@ public:
         std::optional<Ptr<const TObject>> find(Ref<const typename Geometry::Point> rPoint,
                                                std::span<const TObject> objects) const noexcept;
 
-        Geometry geometry;
-        Ptr<Node> maybeSibling;
-        unsigned containedCount;
-        unsigned intersectedCount;
+    private:
+        std::span<const TCoordinate,Dimension> base() const noexcept;
+        std::span<TCoordinate,Dimension> base() noexcept;
+        std::span<const TCoordinate,Dimension> lengths() const noexcept;
+        std::span<TCoordinate,Dimension> lengths() noexcept;
+        std::optional<const Node> maybeSibling() const noexcept;
+        std::optional<Node> maybeSibling() noexcept;
+
+        Ptr<std::byte> _data;
+        //Geometry geometry;
+        //Ptr<Node> maybeSibling;
+        //unsigned containedCount;
+        //unsigned intersectedCount;
     }; // struct Node
 
     template <concepts::SamplableGeometry TObject,
