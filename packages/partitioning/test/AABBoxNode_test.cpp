@@ -8,6 +8,7 @@
 
 // --- STL Inlcudes ---
 #include <cmath>
+#include <iostream>
 
 
 namespace cie::geo {
@@ -46,17 +47,17 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         // Generate objects
         std::vector<Object> objects;
 
-        Size numberOfCellsPerDimension = 5;
+        constexpr Size numberOfCellsPerDimension = 5;
 
         for ( Size i=0; i<numberOfCellsPerDimension; ++i )
             for ( Size j=0; j<numberOfCellsPerDimension; ++j ) {
                 objects.emplace_back(
-                    Object::Point {Double(i)/numberOfCellsPerDimension, Double(j)/numberOfCellsPerDimension},
+                    Object::Point {double(i)/numberOfCellsPerDimension, double(j)/numberOfCellsPerDimension},
                     Object::Point {1.0 / numberOfCellsPerDimension, 1.0 / numberOfCellsPerDimension});
             }
 
         // Generate root node
-        Double delta = 0.0;
+        double delta = 0.0;
         Node root(Object::Point {-delta, -delta},
                   Object::Point {1.0+2*delta, 1.0+2*delta},
                   nullptr);
@@ -85,6 +86,71 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
                 return true;
             };
             CIE_TEST_CHECK_NOTHROW( root.visit(nodeVisitFunction) );
+        }
+
+        {
+            CIE_TEST_CASE_INIT("flattened")
+            const auto flatTree = FlatAABBoxTree<
+                CoordinateType,
+                Dimension,
+                unsigned,
+                std::allocator<std::byte>
+            >::flatten(root,
+                       [&objects] (Ref<const Object> rObject) -> unsigned {
+                         return std::distance(static_cast<Ptr<const Object>>(objects.data()), &rObject);
+                       },
+                       std::allocator<std::byte>());
+
+            const auto maybeRoot = flatTree.root();
+            CIE_TEST_REQUIRE(maybeRoot.has_value());
+            const auto& rRoot = *maybeRoot.value();
+
+            auto pMaybeNode = maybeRoot;
+            while (pMaybeNode.has_value()) {
+                const auto& rNode = *pMaybeNode.value();
+                std::cout << "base          : " << rNode.geometry.base()[0] << " " << rNode.geometry.base()[1] << "\n"
+                          << "lengths       : " << rNode.geometry.lengths()[0] << " " << rNode.geometry.lengths()[1] << "\n";
+                std::cout << "has sibling   : " << rNode.sibling().has_value() << "\n";
+                std::cout << "has child     : " << rNode.child().has_value() << "\n";
+                std::cout << "contained     : ";
+                for (auto c : rNode.contained()) std::cout << c << " ";
+                std::cout << "\n";
+                std::cout << "intersected   : ";
+                for (auto c : rNode.intersected()) std::cout << c << " ";
+                std::cout << "\n\n";
+
+                if (rNode.isLeaf()) {
+                    pMaybeNode = rNode.sibling();
+                } else {
+                    pMaybeNode = rNode.child();
+                }
+            }
+
+            for (unsigned i=0; i<numberOfCellsPerDimension; ++i) {
+                for (unsigned j=0; j<numberOfCellsPerDimension; ++j) {
+                    const Object::Point center {
+                        (double(i) + 0.5) / numberOfCellsPerDimension,
+                        (double(j) + 0.5) / numberOfCellsPerDimension
+                    };
+                    std::cout << center.front() << " " << center.back() << std::endl;
+
+                    CIE_TEST_CHECK_NOTHROW(rRoot.find(
+                        center,
+                        std::span<const Object> {objects.data(), objects.size()}
+                    ));
+
+                    const auto pMaybeObject = rRoot.find(
+                        center,
+                        std::span<const Object> {objects.data(), objects.size()}
+                    );
+                    CIE_TEST_REQUIRE(pMaybeObject.has_value());
+                    Ptr<const Object> pObject = pMaybeObject.value();
+                    CIE_TEST_CHECK(std::distance(
+                        static_cast<Ptr<const Object>>(objects.data()),
+                        pObject
+                    ) == static_cast<long>(i * numberOfCellsPerDimension + j));
+                }
+            }
         }
     }
 

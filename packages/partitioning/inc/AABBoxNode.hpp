@@ -151,6 +151,8 @@ public:
         std::span<TObjectIndex> contained() noexcept;
         std::span<const TObjectIndex> intersected() const noexcept;
         std::span<TObjectIndex> intersected() noexcept;
+        Ptr<const Node> next() const noexcept;
+        Ptr<Node> next() noexcept;
         std::optional<Ptr<const Node>> child() const noexcept;
         std::optional<Ptr<Node>> child() noexcept;
         std::optional<Ptr<const Node>> sibling() const noexcept;
@@ -170,8 +172,9 @@ public:
         unsigned intersectedCount;
     }; // struct Node
 
-    template <class TObject,
+    template <concepts::SamplableGeometry TObject,
               concepts::FunctionWithSignature<TObjectIndex,Ref<const TObject>> THasher>
+    requires (TObject::Dimension == Dimension && std::is_same_v<typename TObject::Coordinate,TCoordinate>)
     static FlatAABBoxTree flatten(Ref<const AABBoxNode<TObject>> rRoot,
                                   THasher&& rHasher,
                                   TAllocator&& rAllocator);
@@ -180,16 +183,16 @@ public:
 
     std::optional<Ptr<const Node>> root() const noexcept;
 
-    std::optional<Ptr<Node>> root() noexcept;
-
 private:
     FlatAABBoxTree(TAllocator&& rAllocator) noexcept;
 
-    FlatAABBoxTree(const FlatAABBoxTree&) = delete;
+    FlatAABBoxTree(const FlatAABBoxTree&) noexcept = default;
 
-    FlatAABBoxTree& operator=(const FlatAABBoxTree&) = delete;
+    FlatAABBoxTree& operator=(const FlatAABBoxTree&) noexcept = delete;
 
-    Ptr<std::byte> _data;
+    std::optional<Ptr<Node>> root() noexcept;
+
+    std::span<std::byte> _data;
 
     TAllocator _allocator;
 }; // class FlatAABBoxTree
