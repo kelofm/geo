@@ -4,6 +4,7 @@
 #include "packages/trees/inc/abstree.hpp"
 #include "packages/stl_extension/inc/DynamicArray.hpp"
 #include "packages/compile_time/packages/concepts/inc/functional.hpp"
+#include "packages/compile_time/packages/concepts/inc/container_concepts.hpp"
 
 // --- GEO Includes ---
 #include "packages/partitioning/inc/AABBox.hpp"
@@ -139,46 +140,109 @@ private:
 
 template <concepts::Numeric TCoordinate,
           unsigned Dimension,
-          concepts::UnsignedInteger TObjectIndex,
-          class TAllocator>
+          concepts::UnsignedInteger TObjectIndex = unsigned,
+          concepts::Allocator<std::byte> TAllocator = std::allocator<std::byte>>
 class FlatAABBoxTree
 {
 public:
-    class Node {
-    public:
+    template <bool TMutable>
+    struct Node {
+        using Geometry = boolean::Box<Dimension,TCoordinate>;
+
+        Node() = delete;
+
+        Node(Ptr<std::conditional_t<TMutable,std::byte,const std::byte>> pData)
+            : _data(pData)
+        {}
+
+        std::span<const TCoordinate,Dimension> base() const noexcept;
+
+        std::span<TCoordinate,Dimension> base() noexcept
+        requires TMutable;
+
+        std::span<const TCoordinate,Dimension> lengths() const noexcept;
+
+        std::span<TCoordinate,Dimension> lengths() noexcept
+        requires TMutable;
+
+        std::size_t iSibling() const noexcept;
+
+        Ref<std::size_t> iSibling() noexcept
+        requires TMutable;
+
+        unsigned containedCount() const noexcept;
+
+        Ref<unsigned> containedCount() noexcept
+        requires TMutable;
+
+        unsigned intersectedCount() const noexcept;
+
+        Ref<unsigned> intersectedCount() noexcept
+        requires TMutable;
+
         std::span<const TObjectIndex> contained() const noexcept;
-        std::span<TObjectIndex> contained() noexcept;
+
+        std::span<TObjectIndex> contained() noexcept
+        requires TMutable;
+
         std::span<const TObjectIndex> intersected() const noexcept;
-        std::span<TObjectIndex> intersected() noexcept;
-        Ptr<const Node> next() const noexcept;
-        Ptr<Node> next() noexcept;
-        std::optional<Ptr<const Node>> child() const noexcept;
-        std::optional<Ptr<Node>> child() noexcept;
-        std::optional<Ptr<const Node>> sibling() const noexcept;
-        std::optional<Ptr<Node>> sibling() noexcept;
-        bool isLeaf() const noexcept;
+
+        std::span<TObjectIndex> intersected() noexcept
+        requires TMutable;
+
+        Node</*TMutable=*/false> next() const noexcept;
+
+        Node</*TMutable=*/true> next() noexcept
+        requires TMutable;
+
+    private:
+        friend class FlatAABBoxTree;
+
+        static constexpr unsigned staticSize() noexcept
+        {
+            return   Dimension * sizeof(TCoordinate)    // <== base
+                   + Dimension * sizeof(TCoordinate)    // <== lengths
+                   + sizeof(std::size_t)                // <== pointer to oldest younger sibling
+                   + sizeof(unsigned)                   // <== number of contained objects
+                   + sizeof(unsigned)                   // <== number of intersected objects
+                   ;
+        }
+
+        /// @brief Size of the current instance in bytes.
+        unsigned size() const noexcept;
 
         /// @brief Find an object that contains the provided point.
         /// @param rPoint Coordinates of the point to find.
-        /// @param objects Range of objects the original @ref AABBoxNode "tree" was built over.
+        /// @param rObjects Range of objects the original @ref AABBoxNode "tree" was built over.
+        /// @param pEnd Sentinel of the tree's allocated memory region.
         template <concepts::SamplableGeometry TObject>
-        std::optional<Ptr<const TObject>> find(Ref<const typename Geometry::Point> rPoint,
-                                               std::span<const TObject> objects) const noexcept;
+        std::optional<Ptr<const TObject>> find(Ref<const std::span<const TCoordinate,Dimension>> rPoint,
+                                               Ref<const std::span<const TObject>> rObjects,
+                                               Ref<const std::span<const std::byte>> rData) const noexcept;
 
-    private:
-        std::span<const TCoordinate,Dimension> base() const noexcept;
-        std::span<TCoordinate,Dimension> base() noexcept;
-        std::span<const TCoordinate,Dimension> lengths() const noexcept;
-        std::span<TCoordinate,Dimension> lengths() noexcept;
-        std::optional<const Node> maybeSibling() const noexcept;
-        std::optional<Node> maybeSibling() noexcept;
-
-        Ptr<std::byte> _data;
-        //Geometry geometry;
-        //Ptr<Node> maybeSibling;
-        //unsigned containedCount;
-        //unsigned intersectedCount;
+        Ptr<std::conditional_t<
+            TMutable,
+            std::byte,
+            const std::byte
+        >> _data;
     }; // struct Node
+
+    /// @brief Find an object that contains the provided point.
+    /// @param rPoint Coordinates of the point to find.
+    /// @param rObjects Range of objects the original @ref AABBoxNode "tree" was built over.
+    template <concepts::SamplableGeometry TObject>
+    std::optional<Ptr<const TObject>> find(Ref<const std::span<const TCoordinate,Dimension>> rPoint,
+                                           Ref<const std::span<const TObject>> rObjects) const noexcept;
+
+    template <concepts::FunctionWithSignature<bool,Node</*TMutable=*/false>> TVisitor>
+    void visit(TVisitor&& rVisitor) {
+        typename FlatAABBoxTree::template Node<false> current(_data.data());
+        const Ptr<const std::byte> pEnd = _data.data() + _data.size();
+        while (current._data < pEnd) {
+            if (!rVisitor(current)) break;
+            current = current.next();
+        }
+    }
 
     template <concepts::SamplableGeometry TObject,
               concepts::FunctionWithSignature<TObjectIndex,Ref<const TObject>> THasher>
@@ -189,8 +253,6 @@ public:
 
     ~FlatAABBoxTree();
 
-    std::optional<Ptr<const Node>> root() const noexcept;
-
 private:
     FlatAABBoxTree(TAllocator&& rAllocator) noexcept;
 
@@ -198,7 +260,9 @@ private:
 
     FlatAABBoxTree& operator=(const FlatAABBoxTree&) noexcept = delete;
 
-    std::optional<Ptr<Node>> root() noexcept;
+    std::optional<Node</*TMutable=*/false>> root() const noexcept;
+
+    std::optional<Node</*TMutable=*/true>> root() noexcept;
 
     std::span<std::byte> _data;
 

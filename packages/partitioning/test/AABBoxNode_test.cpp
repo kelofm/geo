@@ -49,12 +49,20 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
 
         constexpr Size numberOfCellsPerDimension = 5;
 
-        for ( Size i=0; i<numberOfCellsPerDimension; ++i )
+        for ( Size i=0; i<numberOfCellsPerDimension; ++i ) {
             for ( Size j=0; j<numberOfCellsPerDimension; ++j ) {
-                objects.emplace_back(
-                    Object::Point {double(i)/numberOfCellsPerDimension, double(j)/numberOfCellsPerDimension},
-                    Object::Point {1.0 / numberOfCellsPerDimension, 1.0 / numberOfCellsPerDimension});
+                if (i > j) {
+                    objects.emplace_back(
+                        Object::Point {double(i)/numberOfCellsPerDimension, double(j)/numberOfCellsPerDimension},
+                        Object::Point {1.0 / numberOfCellsPerDimension, 1.0 / numberOfCellsPerDimension});
+                } else {
+                    objects.emplace_back(
+                        Object::Point {std::numeric_limits<CoordinateType>::max(), std::numeric_limits<CoordinateType>::max()},
+                        Object::Point {0.0, 0.0}
+                    );
+                }
             }
+        }
 
         // Generate root node
         double delta = 0.0;
@@ -65,7 +73,7 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
         for (auto& rObject : objects)
             CIE_TEST_CHECK_NOTHROW(root.insert(&rObject));
 
-        CIE_TEST_CHECK( root.contained().size() == numberOfCellsPerDimension*numberOfCellsPerDimension );
+        CIE_TEST_CHECK(root.contained().size() == numberOfCellsPerDimension * (numberOfCellsPerDimension - 1) / 2);
 
         // Partition
         constexpr Size maxObjects = 3;
@@ -101,55 +109,35 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
                        },
                        std::allocator<std::byte>());
 
-            const auto maybeRoot = flatTree.root();
-            CIE_TEST_REQUIRE(maybeRoot.has_value());
-            const auto& rRoot = *maybeRoot.value();
-
-            auto pMaybeNode = maybeRoot;
-            while (pMaybeNode.has_value()) {
-                const auto& rNode = *pMaybeNode.value();
-                std::cout << "base          : " << rNode.geometry.base()[0] << " " << rNode.geometry.base()[1] << "\n"
-                          << "lengths       : " << rNode.geometry.lengths()[0] << " " << rNode.geometry.lengths()[1] << "\n";
-                std::cout << "has sibling   : " << rNode.sibling().has_value() << "\n";
-                std::cout << "has child     : " << rNode.child().has_value() << "\n";
-                std::cout << "contained     : ";
-                for (auto c : rNode.contained()) std::cout << c << " ";
-                std::cout << "\n";
-                std::cout << "intersected   : ";
-                for (auto c : rNode.intersected()) std::cout << c << " ";
-                std::cout << "\n";
-                std::cout << "\n";
-
-                if (rNode.isLeaf()) {
-                    pMaybeNode = rNode.sibling();
-                } else {
-                    pMaybeNode = rNode.child();
-                }
-            }
-
             for (unsigned i=0; i<numberOfCellsPerDimension; ++i) {
                 for (unsigned j=0; j<numberOfCellsPerDimension; ++j) {
                     const Object::Point center {
                         (double(i) + 0.5) / numberOfCellsPerDimension,
                         (double(j) + 0.5) / numberOfCellsPerDimension
                     };
-                    std::cout << center.front() << " " << center.back() << std::endl;
 
-                    CIE_TEST_CHECK_NOTHROW(rRoot.find(
-                        center,
+                    CIE_TEST_CHECK_NOTHROW(flatTree.find(
+                        std::span<const CoordinateType,Dimension>(center.data(), Dimension),
                         std::span<const Object> {objects.data(), objects.size()}
                     ));
 
-                    const auto pMaybeObject = rRoot.find(
-                        center,
+                    const auto pMaybeObject = flatTree.find(
+                        std::span<const CoordinateType,Dimension>(center.data(), Dimension),
                         std::span<const Object> {objects.data(), objects.size()}
                     );
-                    CIE_TEST_REQUIRE(pMaybeObject.has_value());
-                    Ptr<const Object> pObject = pMaybeObject.value();
-                    CIE_TEST_CHECK(std::distance(
-                        static_cast<Ptr<const Object>>(objects.data()),
-                        pObject
-                    ) == static_cast<long>(i * numberOfCellsPerDimension + j));
+
+                    if (i > j) {
+                        CIE_TEST_CHECK(pMaybeObject.has_value());
+                        if (pMaybeObject.has_value()) {
+                            Ptr<const Object> pObject = pMaybeObject.value();
+                            CIE_TEST_CHECK(std::distance(
+                                static_cast<Ptr<const Object>>(objects.data()),
+                                pObject
+                            ) == static_cast<long>(i * numberOfCellsPerDimension + j));
+                        }
+                    } else {
+                        CIE_TEST_CHECK(!pMaybeObject.has_value());
+                    }
                 }
             }
         }
