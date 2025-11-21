@@ -50,7 +50,9 @@ public:
 
     typename Box<Dimension,TCoordinate>::Point& lengths() noexcept;
 
-    void makeCorners(std::span<Point,intPow(2,Dimension)> corners) const noexcept;
+    static void makeCorners(Ref<const std::span<const TCoordinate,Dimension>> rBase,
+                            Ref<const std::span<const TCoordinate,Dimension>> rLengths,
+                            Ref<const std::span<TCoordinate,Dimension*intPow(2,Dimension)>> rCorners) noexcept;
 
 protected:
     typename Box<Dimension,TCoordinate>::Point _base;

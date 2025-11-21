@@ -118,22 +118,24 @@ Box<Dimension,TCoordinate>::lengths() noexcept
 
 
 template <Size Dimension, concepts::Numeric TCoordinate>
-void Box<Dimension,TCoordinate>::makeCorners(std::span<Point,intPow(2,Dimension)> corners) const noexcept
+void Box<Dimension,TCoordinate>::makeCorners(Ref<const std::span<const TCoordinate,Dimension>> rBase,
+                                             Ref<const std::span<const TCoordinate,Dimension>> rLengths,
+                                             Ref<const std::span<TCoordinate,Dimension*intPow(2,Dimension)>> rCorners) noexcept
 {
     StaticArray<std::uint8_t,Dimension> state;
     std::fill_n(state.data(), Dimension, static_cast<std::uint8_t>(0));
-    auto itCorner = corners.data();
+    std::uint8_t iCorner = 0;
 
     do {
         for (unsigned iDimension=0u; iDimension<Dimension; ++iDimension) {
-            (*itCorner)[iDimension] = _base[iDimension];
-            if (state[iDimension]) (*itCorner)[iDimension] += _lengths[iDimension];
+            Ref<TCoordinate> rCornerComponent = rCorners[iCorner * Dimension + iDimension];
+            rCornerComponent = rBase[iDimension];
+            if (state[iDimension]) rCornerComponent += rLengths[iDimension];
         } // for iDimension in range(Dimension)
 
-        ++itCorner;
+        ++iCorner;
     } while (::cie::maths::OuterProduct<Dimension>::next(2u, state.data()));
 }
-
 
 
 /* --- boolean::Box --- */
