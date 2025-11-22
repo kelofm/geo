@@ -7,7 +7,7 @@
 #include "packages/macros/inc/exceptions.hpp"
 #include "packages/stl_extension/inc/resize.hpp"
 #include "packages/trees/inc/abstree.hpp"
-#include <packages/exceptions/inc/exception.hpp>
+#include "packages/exceptions/inc/exception.hpp"
 
 // --- STL Includes ---
 #include <algorithm>
@@ -781,14 +781,10 @@ template <concepts::Numeric TCoordinate,
           concepts::Allocator<std::byte> TAllocator>
 template <bool TMutable>
 template <concepts::SamplableGeometry TObject>
-std::optional<Ptr<const TObject>>
-FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node<TMutable>::find(Ref<const std::span<const TCoordinate,Dimension>> rPoint,
-                                                                                    Ref<const std::span<const TObject>> rObjects,
-                                                                                    Ref<const std::span<const std::byte>> rData) const noexcept
+std::optional<std::size_t>
+FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node<TMutable>::find(Ref<const typename Geometry::Point> rPoint,
+                                                                                    Ref<const std::span<const TObject>> rObjects) const noexcept
 {
-    const bool inNode = Geometry::at(rPoint.data(),
-                                     this->base().data(),
-                                     this->lengths().data());
     //std::cout << "node at " << std::distance(rData.data(), this->_data) << ":\n"
     //          << "\tbase            : " << this->base()[0] << " " << this->base()[1] << "\n"
     //          << "\tlengths         : " << this->lengths()[0] << " " << this->lengths()[1] << "\n"
@@ -798,64 +794,17 @@ FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::Node<TMutable>::f
     //          << "\tpoint " << (inNode ? "in" : "not in") << " node\n"
     //          ;
 
-    if (inNode) {
-        typename Geometry::Point point;
-        std::copy_n(rPoint.data(), Dimension, point.data());
+    for (const auto iObject : this->contained()) {
+        Ref<const TObject> rObject = rObjects[iObject];
+        const bool inObject = rObject.at(rPoint);
+        if (inObject) return iObject;
+    } // for iObject in this->contained()
 
-        // The point lies inside the geometry of the current node.
-        // => check whether the point lies in any of the contained
-        //    or intersected objects.
-        for (const auto iObject : this->contained()) {
-            Ref<const TObject> rObject = rObjects[iObject];
-            const bool inObject = rObject.at(point);
-            if (inObject) {
-                return &rObject;
-            }
-        } // for iObject in this->contained()
-
-        for (const auto iObject : this->intersected()) {
-            Ref<const TObject> rObject = rObjects[iObject];
-            const bool inObject = rObject.at(point);
-            if (inObject) {
-                return &rObject;
-            }
-        } // for iObject in this->intersected()
-
-        // The point lies inside the geometry of the current node,
-        // but no in any of the contained or intersected objects.
-        // => check whether this node has a child, and continue
-        //    the recursion there if it does. Otherwise no object
-        //    contains the provided point.
-        typename FlatAABBoxTree::Node</*TMutable=*/false> child(nullptr);
-
-        {
-            // Find the pointer to the child if this node has one.
-            const auto next = this->next();
-            if (next._data < rData.data() + rData.size()) {
-                const auto iSibling = this->iSibling();
-                if (iSibling == 0ul || rData.data() + iSibling != next._data) {
-                    child._data = next._data;
-                }
-            }
-        }
-
-        if (child._data != nullptr) {
-            return child.find(rPoint, rObjects, rData);
-        } /*if pMaybeChild.has_value()*/ else {
-            return {};
-        }
-    } /*if inNode*/ else {
-        const std::size_t iSibling = this->iSibling();
-        if (iSibling != 0ul) {
-            const auto pSibling = rData.data() + iSibling;
-            return typename FlatAABBoxTree::template Node<false>(pSibling).find(
-                rPoint,
-                rObjects,
-                rData);
-        } /*if pMaybeSibling.has_value()*/ else {
-            return {};
-        }
-    } /*if inNode else*/
+    for (const auto iObject : this->intersected()) {
+        Ref<const TObject> rObject = rObjects[iObject];
+        const bool inObject = rObject.at(rPoint);
+        if (inObject) return iObject;
+    } // for iObject in this->intersected()
 
     return {};
 }
@@ -921,19 +870,65 @@ template <concepts::Numeric TCoordinate,
           concepts::UnsignedInteger TObjectIndex,
           concepts::Allocator<std::byte> TAllocator>
 template <concepts::SamplableGeometry TObject>
-std::optional<Ptr<const TObject>>
+std::optional<std::size_t>
 FlatAABBoxTree<TCoordinate,Dimension,TObjectIndex,TAllocator>::find(Ref<const std::span<const TCoordinate,Dimension>> rPoint,
                                                                     Ref<const std::span<const TObject>> rObjects) const noexcept
 {
     auto maybeRoot = this->root();
-    if (maybeRoot.has_value()) {
-        return maybeRoot.value().find(
-            rPoint,
-            rObjects,
-            _data
-        );
-    } else {
+    if (!maybeRoot.has_value()) {
         return {};
+    } else {
+        // Copy point data to a type the objects expect.
+        using Geometry = typename FlatAABBoxTree::template Node<false>::Geometry;
+        typename Geometry::Point point;
+        std::copy_n(rPoint.data(), Dimension, point.data());
+        const auto pDataEnd = _data.data() + _data.size();
+
+        // Avoid recursion. Search at most TMaxLevels levels.
+        std::optional<std::size_t> output;
+        std::optional<typename FlatAABBoxTree::template Node<false>> maybeNode = maybeRoot;
+
+        // Search the tree depth-first in a stack-unrolled recursive manner.
+        do {
+            const auto node = maybeNode.value();
+            maybeNode.reset();
+
+            // Check whether the point lies within the node.
+            const bool inNode = Geometry::at(rPoint.data(),
+                                             node.base().data(),
+                                             node.lengths().data());
+
+            if (inNode) {
+                // The point lies within the current node.
+                // => search it.
+                output = node.find(point, rObjects);
+                if (output.has_value()) {
+                    // The point was found in one of the objects.
+                    break;
+                } /*if output.has_value()*/ else {
+                    // The point was not found in any of the objects.
+                    // Search the child if this node has one, otherwise
+                    // no object contains the provided point.
+                    const auto next = node.next();
+                    if (next._data < pDataEnd) {
+                        const auto iSibling = node.iSibling();
+                        if (iSibling == 0ul || _data.data() + iSibling != next._data) {
+                            maybeNode.emplace(next._data);
+                        } // is this node has a child
+                    } // if next exists
+                }/*if output.has_value() else*/
+            } /*if inNode*/ else {
+                // The point does not lie within the current node.
+                // => search the sibling (if this node has one)
+                const std::size_t iSibling = node.iSibling();
+                if (iSibling != 0ul) {
+                    const auto pSibling = _data.data() + iSibling;
+                    maybeNode.emplace(pSibling);
+                }
+            } /*if inNode else*/
+        } while (maybeNode.has_value());
+
+        return output;
     }
 }
 

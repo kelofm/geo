@@ -129,11 +129,8 @@ CIE_TEST_CASE( "AABBoxNode", "[partitioning]" )
                     if (i > j) {
                         CIE_TEST_CHECK(pMaybeObject.has_value());
                         if (pMaybeObject.has_value()) {
-                            Ptr<const Object> pObject = pMaybeObject.value();
-                            CIE_TEST_CHECK(std::distance(
-                                static_cast<Ptr<const Object>>(objects.data()),
-                                pObject
-                            ) == static_cast<long>(i * numberOfCellsPerDimension + j));
+                            const std::size_t iObject = pMaybeObject.value();
+                            CIE_TEST_CHECK(iObject == i * numberOfCellsPerDimension + j);
                         }
                     } else {
                         CIE_TEST_CHECK(!pMaybeObject.has_value());
